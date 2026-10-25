@@ -31,7 +31,7 @@ During the grill, check every design choice against these boundaries.
 
 ## Demo and deployment plan (Joseph's setup)
 
-Joseph demos from his **work computer** by logging in and showing a **Netlify** site. He never connects his Mac to the class Zoom. So:
+Joseph usually demos from his **work computer**. So:
 - **Local only (Mac):** Cowrie in Docker. Joseph SSHes into it to create sessions, then exports a cleaned sample `cowrie.json` (real IPs swapped for 203.0.113.x) and commits it.
 - **Netlify (public demo):** a Next.js app. The dashboard page is the front end; the Next.js route handler `app/api/summarize/route.ts` is the back end (Netlify runs it as a serverless function). The API key lives only in `.env.local` (local) and Netlify env vars (deployed). The route handler holds the system prompt, the 3 guardrails, the 4,000 char cap, the rate limit and the cost note.
 - The public site reads **sample logs only**. The honeypot is never exposed.
@@ -306,7 +306,7 @@ Status seen in the screenshot: Joseph saved answers to 1 to 4; his answer to 4 s
 
 - Never print, log, echo, or commit API keys or other secrets. Keys live only in `.env.local` locally and in Netlify env vars when deployed. `.env*` files are in `.gitignore`. Verify this before the first commit.
 - The AI call happens on the back end only (`app/api/summarize/route.ts`), never in a client component or browser code.
-- **Joseph is the only one who commits.** Agents never run `git add`, `git commit`, `git push`, `git reset`, or any other git command, except that the verifier subagent may run `git status` and `git diff` read-only. The only subagent is `verifier` (`.claude/agents/verifier.md`); spawn no others.
+- **Joseph is the only one who commits.** Agents never run `git add`, `git commit`, `git push`, `git reset`, or any other git command, except that the verifier subagent may run `git status` and `git diff` read-only. The verifier may also run the runtime checks R1 to R6 in `.claude/agents/verifier.md`: `npm run typecheck`, `npm run lint`, `npm test`, a dev server forced to `AI_MODE=mock` and bound to `127.0.0.1` on port 3100, `curl` to `http://localhost:3100` only, read-only `find` and `grep` inside the repo, and `lsof -ti tcp:3100` plus `kill` on only that process ID to stop its own server. Nothing is committed until R1 to R6 are green. The only subagent is `verifier` (`.claude/agents/verifier.md`); spawn no others.
 - Ask Joseph before any `git push`, deploy, Netlify link, GitHub repo or issue creation, or container start, stop, or restart.
 - Stay on `main`. No worktrees. If the agent loops, go back to the last good commit and take a smaller step.
 - Cowrie stays local. Do not expose it to the internet or forward ports beyond localhost. The public site shows sanitized sample logs only.
@@ -388,7 +388,7 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
 - **D10 · Two-agent loop and commits** (revised by Joseph Oct 25 2026: the verifier is a subagent instead of a second session): Joseph is the only one who commits. Per ticket:
   1. **BUILDER** gets "Work ticket #n. Don't commit." It builds, runs typecheck and tests, and updates Session state (including a list of changed and **new** files).
   2. **BUILDER** calls the `verifier` subagent once. It runs in its own fresh context.
-  3. **VERIFIER** (subagent) may run only `git status` and `git diff`, read-only, and may write only `REVIEW.md`. It finds new files from `git status` itself and never trusts the builder's summary. It writes one batched `REVIEW.md` and ends with `── REVIEW DONE: n PASS / n FAIL ──`.
+  3. **VERIFIER** (subagent) may run read-only `git status` and `git diff`, plus the runtime checks R1 to R6 (typecheck, lint, tests, a mock-only dev server bound to `127.0.0.1` on port 3100, `curl` to localhost:3100, then stopping the server with `lsof -ti tcp:3100` and `kill` on that process ID only). It may also run read-only `find` and `grep` inside the repo. It may write only `REVIEW.md`. It finds new files from `git status` itself and never trusts the builder's summary. Any failed runtime check is a FAIL, and the ticket is not ready to commit until R1 to R6 are green. It writes one batched `REVIEW.md` and ends with `── REVIEW DONE: n PASS / n FAIL ──`.
   4. **BUILDER stops** with a PIOF report and the `REVIEW.md` results (each FAIL with its `[approve] / [skip]` blank), then `── READY FOR REVIEW: ticket #n ──`. **✋ Joseph** marks each FAIL `[approve]` or `[skip]`.
   5. **BUILDER**, on "Apply approved fixes in REVIEW.md in one pass. Don't commit.", applies them, updates Session state, suggests a commit message, and ends with `── READY TO COMMIT ──`.
   6. **Joseph** reviews the diff, runs the app, then runs `git add` and `git commit`. `REVIEW.md` is included in the commit.
@@ -397,7 +397,7 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
   - Stay on `main`, no worktrees, small commits. If the agent loops, go back to the last good commit and take a smaller step. Ask Joseph before any push or deploy.
 - **D11 · Process, CI and deploy:**
   - Tickets are GitHub issues, created by `to-spec` then `to-tickets` after the grill (by hand if those skills don't load). Each issue is a thin end-to-end slice and lists its blockers. Creating the GitHub repo and creating the issues each need Joseph's yes.
-  - CI: one GitHub Action on every push to `main` runs typecheck, lint, tests (fixture test, input guard, Zod schema, rate-limit key) and a gitleaks secret scan.
+  - CI: **moved to Week 7** (Joseph, Oct 25 2026; was issue #4). Planned for Week 7: one GitHub Action on every push to `main` runs typecheck, lint, tests (fixture test, input guard, Zod schema, rate-limit key) and a gitleaks secret scan. The gitleaks scan returns with CI in Week 7.
   - CD: Netlify auto-deploys from `main`, but the repo is linked to Netlify only in the deploy ticket, with Joseph's yes. After that, every push (which already needs his yes) is a deploy.
   - Not used: branch protection, PR workflows, deploy previews.
 - **D12 · System prompt:** Joseph writes the wording himself (Day 1 Exploration 2 evidence). In the AI-call ticket the builder stops, asks for it, and pastes it into `lib/prompt.ts` word for word without rewording. It must cover these 7 rules (topics, not wording):
@@ -409,7 +409,7 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
   6. Defender framing only: no attack steps, no improving attacker commands.
   7. Format: the two fields, the four labels, at most 3 sentences and 600 characters, plain text with no markdown or HTML.
   - The verifier extends check 4 to cover rules 1 to 7.
-  - Day 1 Exploration 3 is its own small ticket: Joseph changes one rule and compares before and after. Both versions are his Prompt Log evidence.
+  - Day 1 Exploration 3 is the final step of #5 (merged from #7, Joseph, Oct 25 2026), with a diff that touches only the system prompt. The builder stops before any system prompt wording; Joseph writes the changed rule, and the builder pastes it word for word. Joseph compares before and after. Both versions are his Prompt Log evidence.
 - **D13 · On-screen Govern layer** (Joseph's written Govern answers stay his):
   - AI label above every summary: "AI generated · verify before acting".
   - Threat badge: low green, medium amber, high red, unknown grey ("Threat: Unknown", using the muted token).
@@ -420,12 +420,12 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
   - Changes from the UI sample: "Local only" becomes "Sample logs only", and "~$0.002" becomes the measured figure.
   - Answers open question 8.
 - **D14 · Main failure mode for the demo (Joseph's choice):** prompt injection in the honeypot logs (attackers control the text the AI reads). Its guardrail is the `<log_excerpt>` wrapping plus system prompt rule 3. The hard backstop shown alongside it is the bad-output guardrail (Zod schema, `unknown`, fallback; D5). Joseph writes the explanation himself. Answers open question 7.
-- **D15 · Demo (from the work computer, live Netlify site):** B can't be triggered live, because `AI_MOCK_SCENARIO` is a server env var and the browser can never switch it (D9). So B is shown two ways: (1) a short screen clip recorded on the Mac in mock mode (`AI_MOCK_SCENARIO=bad_output` → fallback), made in the deploy ticket and linked from the README; (2) the latest green GitHub Actions run with the Zod schema tests passing. Flow (actions only; Joseph writes what he says):
-  - 0:00 Site open; point at the pills (Live AI, Sample logs only).
+- **D15 · Demo (from the work computer: local run, or the Netlify link if #13 ships):** B can't be triggered live, because `AI_MOCK_SCENARIO` is a server env var and the browser can never switch it (D9). So B is shown two ways: (1) a short screen clip recorded on the Mac in mock mode (`AI_MOCK_SCENARIO=bad_output` → fallback), linked from the README; (2) the latest green GitHub Actions run with the Zod schema tests passing. Both are **moved to Week 7** (Joseph, Oct 25 2026): the clip with the curl spoof proof, and the green CI backstop with CI. Flow (actions only; Joseph writes what he says):
+  - 0:00 Show the app on a local run, or the Netlify link if #13 ships; point at the pills (Live AI, Sample logs only).
   - 0:15 Load sample logs → Summarize → summary, threat label, AI label, measured cost.
-  - 0:45 Data flow from the README diagram: browser → route → guards → Anthropic → Zod → screen. The builder drafts the diagram; Joseph reviews it and explains it.
+  - 0:45 Data flow from the README diagram: browser → route → guards → Anthropic → Zod → screen. The builder drafts the diagram in #14; Joseph reviews it and explains it.
   - 1:05 Main failure mode A: point at the injection line; the summary flagged it.
-  - 1:25 Backstop B: the clip and the green CI test.
+  - Backstop proof moves to Week 7 with CI.
   - 1:45 Rate limit: Summarize again → 429 message, page still works.
   - 2:00 End.
   - Answers open question 9 (sample traffic comes from Joseph's local Cowrie sessions, per D3).
@@ -437,7 +437,7 @@ The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.
 
 **Roles**
 - **BUILDER:** writes and edits code for the current ticket, updates the Session state in section 10, and calls the verifier. Never commits. Ends each turn with a marker (below).
-- **VERIFIER (subagent):** read only. Reads CLAUDE.md, runs only `git status` and `git diff`, finds and reads new files itself from `git status`, checks the change against checks 1 to 12, and writes only `REVIEW.md`. Never trusts the builder's summary or Session state. Never edits code, never runs builds, never commits.
+- **VERIFIER (subagent):** never edits code. Reads CLAUDE.md, runs read-only `git status` and `git diff`, finds and reads new files itself from `git status`, runs read-only `find` and `grep` inside the repo, runs the runtime checks R1 to R6 (typecheck, lint, tests, a mock-only dev server bound to `127.0.0.1` on port 3100, `curl` to localhost:3100, then stops its own server with `lsof -ti tcp:3100` and `kill` on that process ID only), checks the change against checks 1 to 12, and writes only `REVIEW.md`. Never trusts the builder's summary or Session state. Never runs `npm run build`, never installs, never commits.
 - **JOSEPH:** approves or skips each finding and makes every commit.
 
 **Shared files (the only communication channel)**
@@ -448,7 +448,7 @@ The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.
 **Per ticket (✋ = Joseph acts)**
 1. **BUILDER:** "Work ticket #n. Don't commit." Read CLAUDE.md, build the ticket, run typecheck and tests, update Session state (done, next, decisions, changed and new files).
 2. **BUILDER:** call the `verifier` subagent once. Pass it only the ticket number; it gathers its own evidence.
-3. **VERIFIER:** check the change and write one batched `REVIEW.md` with PASS or FAIL and evidence per check, plus a "Must fix before commit" list. End with `── REVIEW DONE: n PASS / n FAIL ──`.
+3. **VERIFIER:** run the runtime checks R1 to R6, check the change, and write one batched `REVIEW.md` with PASS or FAIL and evidence per check, plus a "Must fix before commit" list. End with `── REVIEW DONE: n PASS / n FAIL ──`.
 4. **BUILDER stops:** a PIOF report of the ticket, then the `REVIEW.md` results (PASS/FAIL counts and every FAIL with its `[approve] / [skip]` blank). End with `── READY FOR REVIEW: ticket #n ──`. Do not fix anything yet.
 5. **✋ Joseph:** reads `REVIEW.md` and marks each FAIL `[approve]` or `[skip]`.
 6. **BUILDER:** on "Apply approved fixes in REVIEW.md in one pass. Don't commit.", apply them, update Session state, suggest a commit message, and end with `── READY TO COMMIT ──`.
@@ -467,16 +467,18 @@ The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.
 
 ## 10. Session state (BUILDER updates this before every clear and at every READY marker)
 
-- Last ticket done: none (grill complete, plan signed off Oct 24 2026)
-- Current ticket: 00 (scaffold + loop rehearsal), review fixes A7, F1, F2, F3 applied, READY TO COMMIT (Oct 25 2026)
-- Ticket 00 notes: Next.js 16.4.3 + React 19.3 (App Router, TypeScript, ESLint, no Tailwind) scaffolded in the scratchpad with git off, then copied in. Vitest 5.0.5 added; `@types/node` raised from ^20 to ^22 to satisfy Vitest's peer range (Node is 22.22.3). `typecheck` script runs `next typegen` first because `LayoutProps` comes from generated route types. `.gitignore` keeps `.env*` and adds `!.env.example`. `lib/aiMode.ts` returns `mock` unless `AI_MODE` is exactly `live`. typecheck, lint and 3 tests pass; `npm run dev` serves the placeholder page. `next.config.ts` flags `cacheComponents: true` and `partialPrefetching: true` were written by create-next-app itself (confirmed in its bundled `dist/index.js` and in the untouched scaffold copy), so they stay. Review fix pass: `.gitignore` ignores `.claude/*` except `.claude/progress.txt` (F1); the superseded `REVIEW_LOOP.md` moved to `context/` (F3).
-- Spec: written locally as `docs/spec.md` (Oct 24 2026). Repo: https://github.com/ClayClimate-AI/honeypot-log-analyzer. Publishing the spec as issue #1 (`ready-for-agent` label) is on hold until Joseph connects the repo and logs in to `gh`.
-- Tickets: 00 to 12 written locally in `.scratch/cowrie-summarizer/issues/` (Oct 24 2026), to move to GitHub issues along with the spec once `gh` is connected
-- Next ticket: 01 (mock tracer bullet), after Joseph commits 00
-- Changed files this ticket: `CLAUDE.md` (this Session state only). No commit exists yet, so everything else is new.
-- New (untracked) files this ticket: `README.md`, `REVIEW.md`, `.gitignore`, `.env.example`, `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `next-env.d.ts` (git-ignored), `AGENTS.md` (written by create-next-app, re-added by `next dev`), `app/layout.tsx`, `app/page.tsx`, `app/page.module.css`, `app/globals.css`, `app/favicon.ico`, `public/*.svg` (scaffold defaults), `lib/aiMode.ts`, `lib/aiMode.test.ts`, `.claude/progress.txt`, `.claude/agents/verifier.md` (added Oct 25 2026 when the verifier became a subagent)
-- Created this ticket but git-ignored (not committed): `.claude/activity.jsonl`, `.claude/session.json`, `.claude/timeline.jsonl`, `.claude/usage.json` (local Claude Code session telemetry)
-- Moved out of the repo this ticket: `REVIEW_LOOP.md` → `context/REVIEW_LOOP.md` (git-ignored)
-- Git: Joseph ran `git init` (Oct 24 2026). No commits yet, so the verifier's `git diff` is empty and it reads the new files above instead. Before the first commit, `git check-ignore -v .env.local` confirms the env ignore.
+- Numbering: from Oct 25 2026, tickets are referred to by GitHub issue number only (#2 to #14). The old local numbers 00 to 12 are retired; old ticket NN = issue #(NN+2). Ticket 0 in sections 1, 8 and 9 is issue #2.
+- Last ticket done: #2 (scaffold + loop rehearsal), commit 7f2f9e3, issue closed Oct 25 2026
+- Current ticket: #3 (mock tracer bullet), built, awaiting verifier + Joseph's review. Not committed.
+- Issue #3 notes: browser → `app/api/summarize/route.ts` → `lib/aiClient.ts` seam → `lib/mockAiClient.ts` → screen. The route reads mode only from `getAiMode()` (server env); the request body and headers are ignored for mode. The AI client takes `{ excerpt }` and returns `{ text, stopReason, usage }`; live mode throws until #5. The mock reads `AI_MOCK_SCENARIO` at call time (only `success` so far; unset or unknown means success; #10 adds the rest) and records the last request (`getLastMockRequest`, `resetMockAiClient`). `costUsd` is a fixed 0 until #5 adds dated prices. No input guard (#8), Zod (#10) or rate limit (#12) yet, so bad JSON or a non-JSON reply gives a plain 500 for now. UI: tokens in `app/globals.css`, component styles in `app/page.module.css`, components in `app/_components/` (Header server component with a `ModePill` that calls `await connection()` inside `<Suspense>`, as Cache Components requires to read env at request time; client `Dashboard` with idle/success states; `Footer` with the D13 text). Geist Mono dropped so Geist is the one font family; the textarea keeps the sample's system monospace stack for log text. Threat badge uses the sample's low/medium/high colors, otherwise neutral (unknown grey is #10). Cost notes (#5), upload (#8) and sample button (#9) not added. typecheck, lint, build and 7 tests pass; dev server curl returned the contract body with `mode: "mock"` despite `"mode":"live"` in the body, and the page HTML had all four pills and the footer.
+- Issue #2 notes: Next.js 16.4.3 + React 19.3 (App Router, TypeScript, ESLint, no Tailwind) scaffolded in the scratchpad with git off, then copied in. Vitest 5.0.5 added; `@types/node` raised from ^20 to ^22 to satisfy Vitest's peer range (Node is 22.22.3). `typecheck` script runs `next typegen` first because `LayoutProps` comes from generated route types. `.gitignore` keeps `.env*` and adds `!.env.example`. `lib/aiMode.ts` returns `mock` unless `AI_MODE` is exactly `live`. typecheck, lint and 3 tests pass; `npm run dev` serves the placeholder page. `next.config.ts` flags `cacheComponents: true` and `partialPrefetching: true` were written by create-next-app itself (confirmed in its bundled `dist/index.js` and in the untouched scaffold copy), so they stay. Review fix pass: `.gitignore` ignores `.claude/*` except `.claude/progress.txt` (F1); the superseded `REVIEW_LOOP.md` moved to `context/` (F3).
+- Spec: `docs/spec.md`, published as issue #1 with the `ready-for-agent` label (Oct 25 2026). Repo: https://github.com/ClayClimate-AI/honeypot-log-analyzer.
+- Tickets: GitHub issues #2 to #14, mirrored locally in `.scratch/cowrie-summarizer/issues/` with files named by issue number (`NN-slug.md`). Each local file is the source for its issue's title and body.
+- Lean plan (Oct 25 2026, Joseph): #2 closed as done (7f2f9e3). #4 CI closed, moved to Week 7. #6 (cost notes) and #7 (system prompt change) merged into #5 and closed. #11 (failure guard) merged into #10 and closed. #9 keeps Docker for an authentic Cowrie sample, with every `docker` command only after Joseph's OK. #13 deploy is optional and minimal (Netlify link plus env vars), decided after #12; the curl spoof proof and the demo clip moved to Week 7. Follow-up the same day: D11 CI and the D15 green CI backstop marked as moved to Week 7; "gitleaks green" removed from #14 (gitleaks returns with CI in Week 7); D12 prompt change is the final step of #5, prompt-only diff, builder stops before any wording; the README data-flow diagram moved from #13 to #14.
+- Open issues in order: #3 → #5 → #8 → #9, #10, #12 → #13 (optional) → #14
+- Next ticket: #5 (live AI call + system prompt + cost) after #3 is committed
+- Changed files this ticket (#3): `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `app/page.module.css`, `CLAUDE.md` (Session state, plus §6, D10 and §9 verifier rules), `.claude/progress.txt`, `.claude/agents/verifier.md` (runtime checks R1 to R6 and wider Bash permissions, Joseph's request Oct 25 2026), `REVIEW.md` (verifier output). `CLAUDE.md` and `.claude/progress.txt` already had uncommitted edits from the planning session before #3 started.
+- New (untracked) files this ticket (#3): `app/api/summarize/route.ts`, `app/api/summarize/route.test.ts`, `app/_components/Header.tsx`, `app/_components/Dashboard.tsx`, `app/_components/Footer.tsx`, `lib/aiClient.ts`, `lib/mockAiClient.ts`. Build output (`.next/`) is git-ignored.
+- Git: commits so far 7f2f9e3 (#2) and 3cf3be7 (verifier subagent). The verifier reads `git diff` for the changed files and reads the new files in full.
 - Open decisions: none
 - Known gaps: Cowrie host port mapping and `cowrie.json` host path unconfirmed; Netlify function time limit and Anthropic Console menu names to confirm in their tickets
