@@ -8,7 +8,7 @@ This file gives the coding agent full context for Joseph's Week 6 project before
 - **Next steps, in order:** `to-spec` → `to-tickets` (GitHub issues, with Joseph's yes for the repo and the issues) → Ticket 0 loop rehearsal → real tickets, one at a time, using the two-agent loop in section 9.
 - Section 3 is verbatim course text and is the requirement. If anything conflicts with it, the Atlas text wins; ask Joseph.
 - Timing: this is Week 6 material from last week. Joseph missed Friday (Demo Day). His demo date is unknown, so he is building the app at his own pace without deadline pressure. Do not rush scope to hit a date.
-- Related files: `GLOSSARY.md` (project terms), `VERIFIER_PROMPT.md` (verifier checks 1 to 12), `REVIEW.md` (verifier findings for the current ticket), `EVIDENCE.md` (Joseph's graded writing; agents never touch it), `context/cowrie_summarizer_ui_sample.html` (visual reference only). `context/` and `.scratch/` are git-ignored, so they stay local.
+- Related files: `GLOSSARY.md` (project terms), `.claude/agents/verifier.md` (the verifier subagent; checks 1 to 12, built from `VERIFIER_PROMPT.md`), `VERIFIER_PROMPT.md` (original source of the checks), `REVIEW.md` (verifier findings for the current ticket), `EVIDENCE.md` (Joseph's graded writing; agents never touch it), `context/cowrie_summarizer_ui_sample.html` (visual reference only). `context/` and `.scratch/` are git-ignored, so they stay local.
 
 ## Purpose and boundaries (defensive project)
 
@@ -306,7 +306,7 @@ Status seen in the screenshot: Joseph saved answers to 1 to 4; his answer to 4 s
 
 - Never print, log, echo, or commit API keys or other secrets. Keys live only in `.env.local` locally and in Netlify env vars when deployed. `.env*` files are in `.gitignore`. Verify this before the first commit.
 - The AI call happens on the back end only (`app/api/summarize/route.ts`), never in a client component or browser code.
-- **Joseph is the only one who commits.** Agents never run `git add`, `git commit`, `git push`, `git reset`, or any other git command, except that the verifier may run `git status` and `git diff` read-only.
+- **Joseph is the only one who commits.** Agents never run `git add`, `git commit`, `git push`, `git reset`, or any other git command, except that the verifier subagent may run `git status` and `git diff` read-only. The only subagent is `verifier` (`.claude/agents/verifier.md`); spawn no others.
 - Ask Joseph before any `git push`, deploy, Netlify link, GitHub repo or issue creation, or container start, stop, or restart.
 - Stay on `main`. No worktrees. If the agent loops, go back to the last good commit and take a smaller step.
 - Cowrie stays local. Do not expose it to the internet or forward ports beyond localhost. The public site shows sanitized sample logs only.
@@ -385,12 +385,12 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
   - Mock replaces only the Anthropic SDK call. Canned replies still pass through the Zod check, the error mapping and the rate limit.
   - **Confirming it's off:** the header pill shows "Mock AI" (amber) or "Live AI" (green); the API response includes `mode`; a live call shows nonzero `usage` tokens and mock shows 0. Before the first real ticket, Joseph sets `AI_MODE=live`, runs one fixture summary, and sees "Live AI" with real token counts.
   - **Loop rehearsal (Ticket 0, see D10):** the builder and verifier are Claude Code sessions and can't be mocked by a flag. Instead, Ticket 0 is a dry run on a trivial change (the README opening line), run with `AI_MODE=mock`, to prove the builder → verifier → Joseph → builder handoff and file passing.
-- **D10 · Two-agent loop and commits:** Joseph is the only one who commits. Per ticket:
-  1. **BUILDER** gets "Work ticket #n. Don't commit." It builds, runs typecheck and tests, updates Session state (including a list of changed and **new** files), and ends with `── READY FOR REVIEW: ticket #n ──`.
-  2. **✋ Switch 1:** Joseph opens the VERIFIER session fresh (`/clear`) and pastes `VERIFIER_PROMPT.md` with `@CLAUDE.md`.
-  3. **VERIFIER** may run only `git status` and `git diff`, read-only. It reads the new files listed in Session state (`git diff` doesn't show untracked files), writes one batched `REVIEW.md`, and ends with `── REVIEW DONE: n PASS / n FAIL ──`.
-  4. **✋ Switch 2:** Joseph reads `REVIEW.md` and marks each FAIL `[approve]` or `[skip]`.
-  5. **✋ Switch 3:** back to the BUILDER with "Apply approved fixes in REVIEW.md in one pass. Don't commit." It applies them, updates Session state, suggests a commit message, and ends with `── READY TO COMMIT ──`.
+- **D10 · Two-agent loop and commits** (revised by Joseph Oct 25 2026: the verifier is a subagent instead of a second session): Joseph is the only one who commits. Per ticket:
+  1. **BUILDER** gets "Work ticket #n. Don't commit." It builds, runs typecheck and tests, and updates Session state (including a list of changed and **new** files).
+  2. **BUILDER** calls the `verifier` subagent once. It runs in its own fresh context.
+  3. **VERIFIER** (subagent) may run only `git status` and `git diff`, read-only, and may write only `REVIEW.md`. It finds new files from `git status` itself and never trusts the builder's summary. It writes one batched `REVIEW.md` and ends with `── REVIEW DONE: n PASS / n FAIL ──`.
+  4. **BUILDER stops** with a PIOF report and the `REVIEW.md` results (each FAIL with its `[approve] / [skip]` blank), then `── READY FOR REVIEW: ticket #n ──`. **✋ Joseph** marks each FAIL `[approve]` or `[skip]`.
+  5. **BUILDER**, on "Apply approved fixes in REVIEW.md in one pass. Don't commit.", applies them, updates Session state, suggests a commit message, and ends with `── READY TO COMMIT ──`.
   6. **Joseph** reviews the diff, runs the app, then runs `git add` and `git commit`. `REVIEW.md` is included in the commit.
   - `REVIEW.md` is overwritten each ticket, so git history keeps one review per ticket.
   - Re-verify only if the fix pass touched something outside the approved items.
@@ -433,26 +433,27 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
 
 ## 9. Two-agent build loop
 
-Two agents run in two separate Claude Code CLI sessions with separate context windows. They never share a live context. They coordinate only through files on disk.
+The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.claude/agents/verifier.md`) that the builder calls; it gets its own fresh context window every call and shares no live context with the builder. They coordinate only through files on disk. The verifier is the only subagent; the builder spawns no others.
 
 **Roles**
-- **BUILDER:** writes and edits code for the current ticket, and updates the Session state in section 10. Never commits. Ends each turn with a marker (below).
-- **VERIFIER:** read only. Reads CLAUDE.md, runs only `git status` and `git diff`, reads any new files listed in Session state, checks the change against `VERIFIER_PROMPT.md` checks 1 to 12, and writes findings only to `REVIEW.md`. Never edits code, never runs builds, never commits.
-- **JOSEPH:** runs every switch, approves or skips each finding, and makes every commit.
+- **BUILDER:** writes and edits code for the current ticket, updates the Session state in section 10, and calls the verifier. Never commits. Ends each turn with a marker (below).
+- **VERIFIER (subagent):** read only. Reads CLAUDE.md, runs only `git status` and `git diff`, finds and reads new files itself from `git status`, checks the change against checks 1 to 12, and writes only `REVIEW.md`. Never trusts the builder's summary or Session state. Never edits code, never runs builds, never commits.
+- **JOSEPH:** approves or skips each finding and makes every commit.
 
 **Shared files (the only communication channel)**
 - `CLAUDE.md`: the spec, the decisions, and the Session state.
-- The git diff: what changed since the last commit (plus new files listed in Session state, because `git diff` doesn't show untracked files).
+- The git diff and `git status`: what changed since the last commit, including untracked files.
 - `REVIEW.md`: the verifier's findings for the current ticket. Overwritten each ticket and committed with it.
 
-**Per ticket (✋ = Joseph switches sessions)**
-1. **BUILDER:** "Work ticket #n. Don't commit." Read CLAUDE.md, build the ticket, run typecheck and tests, update Session state (done, next, decisions, changed and new files). End with `── READY FOR REVIEW: ticket #n ──`.
-2. **✋ Switch 1:** Joseph opens the VERIFIER session fresh (`/clear`) and pastes `VERIFIER_PROMPT.md` with `@CLAUDE.md`.
+**Per ticket (✋ = Joseph acts)**
+1. **BUILDER:** "Work ticket #n. Don't commit." Read CLAUDE.md, build the ticket, run typecheck and tests, update Session state (done, next, decisions, changed and new files).
+2. **BUILDER:** call the `verifier` subagent once. Pass it only the ticket number; it gathers its own evidence.
 3. **VERIFIER:** check the change and write one batched `REVIEW.md` with PASS or FAIL and evidence per check, plus a "Must fix before commit" list. End with `── REVIEW DONE: n PASS / n FAIL ──`.
-4. **✋ Switch 2:** Joseph reads `REVIEW.md` and marks each FAIL `[approve]` or `[skip]`.
-5. **✋ Switch 3:** back to the BUILDER with "Apply approved fixes in REVIEW.md in one pass. Don't commit." It applies them, updates Session state, suggests a commit message, and ends with `── READY TO COMMIT ──`.
-6. **Joseph:** reviews the diff, runs the app, then runs `git add` and `git commit` (including `REVIEW.md`).
-7. Next ticket: back to step 1. Re-verify only if the fix pass touched something outside the approved items.
+4. **BUILDER stops:** a PIOF report of the ticket, then the `REVIEW.md` results (PASS/FAIL counts and every FAIL with its `[approve] / [skip]` blank). End with `── READY FOR REVIEW: ticket #n ──`. Do not fix anything yet.
+5. **✋ Joseph:** reads `REVIEW.md` and marks each FAIL `[approve]` or `[skip]`.
+6. **BUILDER:** on "Apply approved fixes in REVIEW.md in one pass. Don't commit.", apply them, update Session state, suggest a commit message, and end with `── READY TO COMMIT ──`.
+7. **✋ Joseph:** reviews the diff, runs the app, then runs `git add` and `git commit` (including `REVIEW.md`).
+8. Next ticket: back to step 1. Call the verifier again only if the fix pass touched something outside the approved items.
 
 **Batching rule (one report, one apply per ticket)**
 - The VERIFIER batches all findings from a single pass into one `REVIEW.md` report for the whole ticket. It never returns findings one at a time.
@@ -460,7 +461,7 @@ Two agents run in two separate Claude Code CLI sessions with separate context wi
 
 **Context hygiene**
 - BUILDER: clear at or before 50 percent context. State lives in CLAUDE.md, so a fresh session loses nothing.
-- VERIFIER: fed only CLAUDE.md, the diff, and the new files, so its window stays near empty. Start it fresh for every review.
+- VERIFIER: a subagent starts with an empty context on every call, so each review is fresh. It reads only CLAUDE.md, the ticket, the diff, and the new files.
 
 **Ticket 0 (loop rehearsal, before any real ticket):** a trivial change (the README opening line) run through all seven steps with `AI_MODE=mock`, to prove the switches, markers and file passing work (D9).
 
@@ -473,7 +474,7 @@ Two agents run in two separate Claude Code CLI sessions with separate context wi
 - Tickets: 00 to 12 written locally in `.scratch/cowrie-summarizer/issues/` (Oct 24 2026), to move to GitHub issues along with the spec once `gh` is connected
 - Next ticket: 01 (mock tracer bullet), after Joseph commits 00
 - Changed files this ticket: `CLAUDE.md` (this Session state only). No commit exists yet, so everything else is new.
-- New (untracked) files this ticket: `README.md`, `REVIEW.md`, `.gitignore`, `.env.example`, `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `next-env.d.ts` (git-ignored), `AGENTS.md` (written by create-next-app, re-added by `next dev`), `app/layout.tsx`, `app/page.tsx`, `app/page.module.css`, `app/globals.css`, `app/favicon.ico`, `public/*.svg` (scaffold defaults), `lib/aiMode.ts`, `lib/aiMode.test.ts`, `.claude/progress.txt`
+- New (untracked) files this ticket: `README.md`, `REVIEW.md`, `.gitignore`, `.env.example`, `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `next-env.d.ts` (git-ignored), `AGENTS.md` (written by create-next-app, re-added by `next dev`), `app/layout.tsx`, `app/page.tsx`, `app/page.module.css`, `app/globals.css`, `app/favicon.ico`, `public/*.svg` (scaffold defaults), `lib/aiMode.ts`, `lib/aiMode.test.ts`, `.claude/progress.txt`, `.claude/agents/verifier.md` (added Oct 25 2026 when the verifier became a subagent)
 - Created this ticket but git-ignored (not committed): `.claude/activity.jsonl`, `.claude/session.json`, `.claude/timeline.jsonl`, `.claude/usage.json` (local Claude Code session telemetry)
 - Moved out of the repo this ticket: `REVIEW_LOOP.md` → `context/REVIEW_LOOP.md` (git-ignored)
 - Git: Joseph ran `git init` (Oct 24 2026). No commits yet, so the verifier's `git diff` is empty and it reads the new files above instead. Before the first commit, `git check-ignore -v .env.local` confirms the env ignore.
