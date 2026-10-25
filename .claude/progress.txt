@@ -1,0 +1,4 @@
+stage: R
+step: R5 (5 of 5)
+issue: #00
+title: Typecheck, lint, tests
