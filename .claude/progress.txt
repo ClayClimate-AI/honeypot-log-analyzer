@@ -1,4 +1,4 @@
-stage: C
-step: C9 (9 of 9), deferred until #10
-issue: #5
-title: System prompt change (prompt-only diff)
+stage: D
+step: D5 (5 of 5)
+issue: #8
+title: Verifier pass

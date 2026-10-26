@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type DragEvent } from "react";
+import {
+  checkExcerptBasics,
+  MAX_UPLOAD_BYTES,
+  uploadTooLargeMessage,
+} from "../../lib/inputGuard";
 import styles from "../page.module.css";
 
 // Matches the summarize route's success body.
@@ -31,8 +36,18 @@ export function Dashboard() {
   // null is the idle state; a result is the success state.
   const [result, setResult] = useState<SummaryResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  // Input-guard message from the browser check or the server's 400 (D6).
+  const [inputError, setInputError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   async function handleSummarize() {
+    // Fast feedback only; the server checks again either way.
+    const check = checkExcerptBasics(excerpt);
+    if (!check.ok) {
+      setInputError(check.error);
+      return;
+    }
+    setInputError(null);
     setIsLoading(true);
     try {
       const response = await fetch("/api/summarize", {
@@ -40,11 +55,13 @@ export function Dashboard() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ excerpt }),
       });
-      // Failure states arrive in #10; until then a failed call keeps the
-      // previous result on screen.
       if (response.ok) {
         setResult(await response.json());
+      } else if (response.status === 400) {
+        setInputError((await response.json()).error);
       }
+      // Other failure states arrive in #10; until then a failed call keeps
+      // the previous result on screen.
     } catch {
       // Same as above: a network error leaves the page as it was.
     } finally {
@@ -52,9 +69,30 @@ export function Dashboard() {
     }
   }
 
+  // An accepted file fills the text box and then takes the paste path (D6).
+  async function loadFile(file: File) {
+    // Checked before the file is read.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setInputError(uploadTooLargeMessage(file.size));
+      return;
+    }
+    setExcerpt(await file.text());
+    setInputError(null);
+  }
+
+  function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDragOver(false);
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      void loadFile(file);
+    }
+  }
+
   function handleClear() {
     setExcerpt("");
     setResult(null);
+    setInputError(null);
   }
 
   return (
@@ -62,7 +100,9 @@ export function Dashboard() {
       <section className={styles.card} aria-labelledby="input-heading">
         <div>
           <h2 id="input-heading">Log input</h2>
-          <p className={styles.hint}>Paste a Cowrie JSON excerpt, one event per line.</p>
+          <p className={styles.hint}>
+            Paste a Cowrie JSON excerpt, one event per line, or upload a .json / .log file.
+          </p>
         </div>
 
         <div>
@@ -78,6 +118,45 @@ export function Dashboard() {
             onChange={(event) => setExcerpt(event.target.value)}
           />
         </div>
+
+        <div>
+          <label className={styles.fieldLabel} htmlFor="log-file">
+            Or upload a file
+          </label>
+          <label
+            className={`${styles.dropzone} ${isDragOver ? styles.dropzoneActive : ""}`}
+            htmlFor="log-file"
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              id="log-file"
+              className={styles.fileInput}
+              accept=".json,.jsonl,.log,.txt,application/json,text/plain"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                // Reset so choosing the same file again still fires onChange.
+                event.target.value = "";
+                if (file) {
+                  void loadFile(file);
+                }
+              }}
+            />
+            <div className={styles.dropzoneTitle}>Drop cowrie.json here, or click to browse</div>
+            <div className={styles.dropzoneSub}>JSON or plain text · up to 50 KB</div>
+          </label>
+        </div>
+
+        {inputError && (
+          <div className={`${styles.alert} ${styles.alertFail}`} role="alert">
+            {inputError}
+          </div>
+        )}
 
         <div className={styles.actions}>
           <button
