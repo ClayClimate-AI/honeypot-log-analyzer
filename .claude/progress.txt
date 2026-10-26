@@ -1,4 +1,4 @@
 stage: C
-step: C7 (7 of 7)
+step: C9 (9 of 9), deferred until #10
 issue: #5
-title: Joseph's system prompt + verifier
+title: System prompt change (prompt-only diff)
