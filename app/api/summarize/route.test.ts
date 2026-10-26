@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getLastMockRequest, resetMockAiClient } from "../../../lib/mockAiClient";
+import { SYSTEM_PROMPT } from "../../../lib/prompt";
 import { POST } from "./route";
 
 const EXCERPT =
@@ -39,10 +40,13 @@ describe("POST /api/summarize (mock mode)", () => {
     expect(body.summary.length).toBeGreaterThan(0);
   });
 
-  it("records the outgoing request in the mock", async () => {
+  it("sends the system prompt and the excerpt wrapped in <log_excerpt> tags", async () => {
     await POST(summarizeRequest({ excerpt: EXCERPT }));
 
-    expect(getLastMockRequest()).toEqual({ excerpt: EXCERPT });
+    expect(getLastMockRequest()).toEqual({
+      system: SYSTEM_PROMPT,
+      userMessage: `<log_excerpt>\n${EXCERPT}\n</log_excerpt>`,
+    });
   });
 
   it("defaults to mock when AI_MODE is unset", async () => {

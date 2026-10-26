@@ -1,11 +1,14 @@
 import type { AiMode } from "./aiMode";
+import { liveAiClient } from "./liveAiClient";
 import { mockAiClient } from "./mockAiClient";
 
 // The seam mock mode replaces (D9): only the provider call. Everything the
 // route does with the reply (parsing, and later the Zod check, error mapping
-// and rate limit) runs the same in mock and live.
+// and rate limit) runs the same in mock and live. The route builds the full
+// request, so the mock records exactly what live would send.
 export type AiRequest = {
-  excerpt: string;
+  system: string;
+  userMessage: string;
 };
 
 export type AiUsage = {
@@ -25,6 +28,5 @@ export function getAiClient(mode: AiMode): AiClient {
   if (mode === "mock") {
     return mockAiClient;
   }
-  // The live Anthropic client arrives in #5.
-  throw new Error("Live AI client is not built yet (issue #5).");
+  return liveAiClient;
 }

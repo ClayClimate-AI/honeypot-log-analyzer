@@ -18,6 +18,11 @@ const THREAT_CLASS: Record<string, string> = {
   high: styles.threatHigh,
 };
 
+// Per-call costs are fractions of a cent, so show six decimal places.
+function formatUsd(amount: number): string {
+  return `$${amount.toFixed(6)}`;
+}
+
 const PLACEHOLDER =
   '{"eventid":"cowrie.login.failed","username":"root","src_ip":"203.0.113.42",...}';
 
@@ -92,6 +97,14 @@ export function Dashboard() {
             Clear
           </button>
         </div>
+
+        {/* Before a call: the cap and the rough estimate (D4, D13). */}
+        <div className={styles.metaBar}>
+          <span>
+            Cap: <strong>4,000</strong> characters · about <strong>$0.0003</strong> per call
+            (Claude Haiku 5.5)
+          </span>
+        </div>
       </section>
 
       <section className={styles.card} aria-labelledby="result-heading">
@@ -112,6 +125,18 @@ export function Dashboard() {
             <p className={styles.aiLabel}>AI generated · verify before acting</p>
             {/* Rendered as a React text child, never as HTML (D5). */}
             <div className={styles.summaryText}>{result.summary}</div>
+            {/* After a call: measured usage and the cost the server computed (D13). */}
+            <div className={styles.metaBar}>
+              <span>
+                Tokens in: <strong>{result.usage.inputTokens.toLocaleString("en-US")}</strong>
+              </span>
+              <span>
+                Tokens out: <strong>{result.usage.outputTokens.toLocaleString("en-US")}</strong>
+              </span>
+              <span>
+                Cost this call: <strong>{formatUsd(result.costUsd)}</strong>
+              </span>
+            </div>
           </div>
         ) : (
           <div>

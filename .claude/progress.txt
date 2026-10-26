@@ -1,4 +1,4 @@
-stage: B
-step: B6 (6 of 6)
-issue: #3
-title: Session state + verifier
+stage: C
+step: C7 (7 of 7)
+issue: #5
+title: Joseph's system prompt + verifier
