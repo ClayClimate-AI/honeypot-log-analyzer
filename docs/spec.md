@@ -91,7 +91,7 @@ A one-request-per-minute limit per client protects the key. The public site only
 47. As the site owner, I want the per-instance, in-memory nature of the limit documented as a known limitation, with the workspace spend cap as the hard backstop, so that the risk is stated honestly.
 
 ### Cost
-48. As a visitor, I want a cost note before I submit ("Cap: 4,000 characters · about $0.0003 per call (Claude Haiku 5.5)"), so that I know the feature is capped and cheap.
+48. As a visitor, I want a cost note before I submit ("Cap: 4,000 characters · about $0.0001–$0.0003 per call (Claude Haiku 5.5) · measured cost shown after each call"), so that I know the feature is capped and cheap.
 49. As a visitor, I want the measured input and output tokens and that call's cost shown after a summary, so that the cost is real, not guessed.
 50. As the site owner, I want cost calculated on the server from the reported usage and dated price constants, so that the figure is traceable and easy to update.
 51. As the site owner, I want the key in a dedicated workspace with about a $5 monthly spend limit, so that a leaked key or abuse has a hard ceiling.

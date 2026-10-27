@@ -196,11 +196,12 @@ export function Dashboard() {
           </button>
         </div>
 
-        {/* Before a call: the cap and the rough estimate (D4, D13). */}
+        {/* Before a call: the cap and the cost range, from Joseph's measured
+            short runs up to the D4 near-cap estimate (D13). */}
         <div className={styles.metaBar}>
           <span>
-            Cap: <strong>4,000</strong> characters · about <strong>$0.0003</strong> per call
-            (Claude Haiku 5.5)
+            Cap: <strong>4,000</strong> characters · about <strong>$0.0001–$0.0003</strong> per
+            call (Claude Haiku 5.5) · measured cost shown after each call
           </span>
         </div>
       </section>

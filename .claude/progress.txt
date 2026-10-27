@@ -1,4 +1,4 @@
-stage: E
-step: E7 (7 of 7)
-issue: #9
-title: Pre-commit cleanup + cost note check
+stage: F
+step: F1 (1 of 1)
+issue: #9 follow-up
+title: Cost note wording, option A
