@@ -1,4 +1,4 @@
 stage: H
-step: H1 (1 of 1)
-issue: #12
-title: Rate limit, one per minute per client (ready for review)
+step: H3 (1 of 1)
+issue: #12 follow-up
+title: 429 fallback (body, Retry-After, 60 s) capped at 300 s (ready to commit)

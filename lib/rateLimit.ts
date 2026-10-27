@@ -30,8 +30,8 @@ export function clientKey(headers: Headers): ClientKey {
   return { key: `ip:${hash}`, ipHeaderPresent: true };
 }
 
-export const rateLimitMessage = (seconds: number) =>
-  `Only one summary per minute. Try again in about ${seconds} seconds.`;
+// Lives in a browser-safe file so the dashboard can share it.
+export { rateLimitMessage } from "./retryAfter";
 
 export type RateCheck = { ok: true } | { ok: false; retryAfterSeconds: number };
 

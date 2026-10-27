@@ -7,6 +7,7 @@ import {
   uploadTooLargeMessage,
 } from "../../lib/inputGuard";
 import type { ThreatLabel } from "../../lib/outputGuard";
+import { readRetryAfter } from "../../lib/retryAfter";
 import sampleLogs from "../../fixtures/sample-session.jsonl";
 import styles from "../page.module.css";
 
@@ -85,8 +86,9 @@ export function Dashboard() {
       } else if (response.status === 400) {
         setInputError((await response.json()).error);
       } else if (response.status === 429) {
-        const body = await response.json();
-        setRateLimit({ message: body.error, seconds: body.retryAfterSeconds });
+        // A missing or malformed body falls back to Retry-After, then 60 s.
+        const body = await response.json().catch(() => null);
+        setRateLimit(readRetryAfter(body, response.headers.get("Retry-After")));
       } else {
         const body = await response.json().catch(() => null);
         setAiFailure(typeof body?.error === "string" ? body.error : NETWORK_FAILURE_MESSAGE);
