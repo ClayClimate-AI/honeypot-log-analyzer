@@ -6,23 +6,31 @@ import {
   MAX_UPLOAD_BYTES,
   uploadTooLargeMessage,
 } from "../../lib/inputGuard";
+import type { ThreatLabel } from "../../lib/outputGuard";
 import sampleLogs from "../../fixtures/sample-session.jsonl";
 import styles from "../page.module.css";
 
 // Matches the summarize route's success body.
 type SummaryResult = {
   summary: string;
-  threatLabel: string;
+  threatLabel: ThreatLabel;
   mode: "mock" | "live";
   usage: { inputTokens: number; outputTokens: number };
   costUsd: number;
 };
 
-const THREAT_CLASS: Record<string, string> = {
-  low: styles.threatLow,
-  medium: styles.threatMedium,
-  high: styles.threatHigh,
+// D13: low green, medium amber, high red, unknown grey (muted token).
+const THREAT_BADGE: Record<ThreatLabel, { className: string; text: string }> = {
+  low: { className: styles.threatLow, text: "Low" },
+  medium: { className: styles.threatMedium, text: "Medium" },
+  high: { className: styles.threatHigh, text: "High" },
+  unknown: { className: styles.threatUnknown, text: "Unknown" },
 };
+
+// Shown when the server's failure body can't be read, or the request never
+// reached the server.
+const NETWORK_FAILURE_MESSAGE =
+  "Couldn't reach the server. Your log text is still here; try again in a moment.";
 
 // Per-call costs are fractions of a cent, so show six decimal places.
 function formatUsd(amount: number): string {
@@ -39,6 +47,9 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   // Input-guard message from the browser check or the server's 400 (D6).
   const [inputError, setInputError] = useState<string | null>(null);
+  // Failure-guard or output-guard message from the server (D5, D7). The
+  // previous result stays on screen underneath it.
+  const [aiFailure, setAiFailure] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
   async function handleSummarize() {
@@ -49,6 +60,7 @@ export function Dashboard() {
       return;
     }
     setInputError(null);
+    setAiFailure(null);
     setIsLoading(true);
     try {
       const response = await fetch("/api/summarize", {
@@ -60,11 +72,13 @@ export function Dashboard() {
         setResult(await response.json());
       } else if (response.status === 400) {
         setInputError((await response.json()).error);
+      } else {
+        const body = await response.json().catch(() => null);
+        setAiFailure(typeof body?.error === "string" ? body.error : NETWORK_FAILURE_MESSAGE);
       }
-      // Other failure states arrive in #10; until then a failed call keeps
-      // the previous result on screen.
     } catch {
-      // Same as above: a network error leaves the page as it was.
+      // The request never reached the server; the rest of the page still works.
+      setAiFailure(NETWORK_FAILURE_MESSAGE);
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +95,7 @@ export function Dashboard() {
     // A new input replaces the box, so an older summary would look like its own.
     setResult(null);
     setInputError(null);
+    setAiFailure(null);
   }
 
   // The sample is bundled into this page, so it fills the text box like a
@@ -89,6 +104,7 @@ export function Dashboard() {
     setExcerpt(sampleLogs);
     setResult(null);
     setInputError(null);
+    setAiFailure(null);
   }
 
   function handleDrop(event: DragEvent<HTMLLabelElement>) {
@@ -104,6 +120,7 @@ export function Dashboard() {
     setExcerpt("");
     setResult(null);
     setInputError(null);
+    setAiFailure(null);
   }
 
   return (
@@ -213,11 +230,18 @@ export function Dashboard() {
             <p className={styles.hint}>Shown as plain text only. Always labeled AI generated.</p>
           </div>
           {result && (
-            <span className={`${styles.threat} ${THREAT_CLASS[result.threatLabel] ?? ""}`}>
-              Threat: {result.threatLabel}
+            <span className={`${styles.threat} ${THREAT_BADGE[result.threatLabel].className}`}>
+              Threat: {THREAT_BADGE[result.threatLabel].text}
             </span>
           )}
         </div>
+
+        {/* Failure state (D7): shown above the previous summary, which stays. */}
+        {aiFailure && (
+          <div className={`${styles.alert} ${styles.alertFail}`} role="alert">
+            {aiFailure}
+          </div>
+        )}
 
         {result ? (
           <div>
@@ -239,9 +263,11 @@ export function Dashboard() {
           </div>
         ) : (
           <div>
-            <div className={`${styles.alert} ${styles.alertOk}`} role="status">
-              Ready. Paste a Cowrie excerpt, then press Summarize with AI.
-            </div>
+            {!aiFailure && (
+              <div className={`${styles.alert} ${styles.alertOk}`} role="status">
+                Ready. Paste a Cowrie excerpt, then press Summarize with AI.
+              </div>
+            )}
             <p className={styles.aiLabel}>Waiting for input</p>
             <div className={styles.summaryText}>
               The summary appears here as plain text, with a threat label.

@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getLastMockRequest, resetMockAiClient } from "../../../lib/mockAiClient";
+import { BUSY_MESSAGE, TIMEOUT_MESSAGE } from "../../../lib/aiFailure";
+import {
+  getLastMockRequest,
+  MOCK_PROVIDER_ERROR_TEXT,
+  resetMockAiClient,
+} from "../../../lib/mockAiClient";
+import { BAD_OUTPUT_MESSAGE } from "../../../lib/outputGuard";
 import {
   EMPTY_MESSAGE,
   MAX_EXCERPT_CHARS,
@@ -135,5 +141,64 @@ describe("POST /api/summarize input guard (D6)", () => {
       expect(await response.json()).toEqual({ error: EMPTY_MESSAGE });
     }
     expect(getLastMockRequest()).toBeNull();
+  });
+});
+
+describe("POST /api/summarize output and failure guards (D5, D7)", () => {
+  const FAKE_KEY = "sk-ant-test-key-never-shown";
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.stubEnv("AI_MODE", "mock");
+    vi.stubEnv("ANTHROPIC_API_KEY", FAKE_KEY);
+    resetMockAiClient();
+    logSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    logSpy.mockRestore();
+  });
+
+  it("passes a schema-valid success reply through with no log entry", async () => {
+    vi.stubEnv("AI_MOCK_SCENARIO", "success");
+
+    const response = await POST(summarizeRequest({ excerpt: EXCERPT }));
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).threatLabel).toBe("medium");
+    expect(logSpy).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["bad_output", 502, BAD_OUTPUT_MESSAGE, "ai_bad_output", { reason: "threatLabel: invalid_value" }],
+    ["refusal", 502, BAD_OUTPUT_MESSAGE, "ai_bad_output", { reason: "refusal" }],
+    ["timeout", 504, TIMEOUT_MESSAGE, "ai_timeout", { elapsedMs: expect.any(Number) }],
+    ["rate_limited", 503, BUSY_MESSAGE, "ai_rate_limited", { status: 429 }],
+  ])("%s → %i with the friendly message and one short log code", async (scenario, status, message, code, detail) => {
+    vi.stubEnv("AI_MOCK_SCENARIO", scenario);
+
+    const response = await POST(summarizeRequest({ excerpt: EXCERPT }));
+    const raw = await response.text();
+
+    expect(response.status).toBe(status);
+    expect(JSON.parse(raw)).toEqual({ error: message });
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(code, detail);
+
+    // Nothing secret or raw reaches the visitor or the log.
+    const logged = JSON.stringify(logSpy.mock.calls);
+    for (const leak of [FAKE_KEY, MOCK_PROVIDER_ERROR_TEXT, "req_mock", "stack", "Error"]) {
+      expect(raw).not.toContain(leak);
+      expect(logged).not.toContain(leak);
+    }
+  });
+
+  it("still sends the request to the AI before mapping a failure", async () => {
+    vi.stubEnv("AI_MOCK_SCENARIO", "timeout");
+
+    await POST(summarizeRequest({ excerpt: EXCERPT }));
+
+    expect(getLastMockRequest()?.system).toBe(SYSTEM_PROMPT);
   });
 });

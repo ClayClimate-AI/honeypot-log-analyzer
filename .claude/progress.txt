@@ -1,4 +1,4 @@
-stage: F
-step: F1 (1 of 1)
-issue: #9 follow-up
-title: Cost note wording, option A
+stage: G
+step: G2 (1 of 1)
+issue: #10
+title: Fix pass: sentence counter abbreviations (ready to commit)

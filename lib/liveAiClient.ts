@@ -42,7 +42,7 @@ export const liveAiClient: AiClient = async ({ system, userMessage }) => {
 
   return {
     text,
-    // #10 treats "refusal" as bad output (D4, D5).
+    // The output guard treats "refusal" as bad output (D4, D5).
     stopReason: response.stop_reason ?? "unknown",
     usage: {
       inputTokens: response.usage.input_tokens,
