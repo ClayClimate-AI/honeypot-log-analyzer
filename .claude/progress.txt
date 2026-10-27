@@ -1,4 +1,4 @@
-stage: G
-step: G2 (1 of 1)
-issue: #10
-title: Fix pass: sentence counter abbreviations (ready to commit)
+stage: H
+step: H1 (1 of 1)
+issue: #12
+title: Rate limit, one per minute per client (ready for review)

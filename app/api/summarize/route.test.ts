@@ -6,6 +6,7 @@ import {
   resetMockAiClient,
 } from "../../../lib/mockAiClient";
 import { BAD_OUTPUT_MESSAGE } from "../../../lib/outputGuard";
+import { rateLimitMessage, resetRateLimit } from "../../../lib/rateLimit";
 import {
   EMPTY_MESSAGE,
   MAX_EXCERPT_CHARS,
@@ -31,6 +32,7 @@ describe("POST /api/summarize (mock mode)", () => {
     vi.stubEnv("AI_MODE", "mock");
     vi.stubEnv("AI_MOCK_SCENARIO", "success");
     resetMockAiClient();
+    resetRateLimit();
   });
 
   afterEach(() => {
@@ -90,6 +92,7 @@ describe("POST /api/summarize input guard (D6)", () => {
     vi.stubEnv("AI_MODE", "mock");
     vi.stubEnv("AI_MOCK_SCENARIO", "success");
     resetMockAiClient();
+    resetRateLimit();
   });
 
   afterEach(() => {
@@ -152,6 +155,7 @@ describe("POST /api/summarize output and failure guards (D5, D7)", () => {
     vi.stubEnv("AI_MODE", "mock");
     vi.stubEnv("ANTHROPIC_API_KEY", FAKE_KEY);
     resetMockAiClient();
+    resetRateLimit();
     logSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -200,5 +204,97 @@ describe("POST /api/summarize output and failure guards (D5, D7)", () => {
     await POST(summarizeRequest({ excerpt: EXCERPT }));
 
     expect(getLastMockRequest()?.system).toBe(SYSTEM_PROMPT);
+  });
+});
+
+describe("POST /api/summarize rate limit (D8)", () => {
+  const IP_A = "198.51.100.10";
+  const IP_B = "198.51.100.20";
+  let infoSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.stubEnv("AI_MODE", "mock");
+    vi.stubEnv("AI_MOCK_SCENARIO", "success");
+    resetMockAiClient();
+    resetRateLimit();
+    infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    infoSpy.mockRestore();
+  });
+
+  const fromIp = (ip: string, extra: Record<string, string> = {}) =>
+    summarizeRequest({ excerpt: EXCERPT }, { "x-nf-client-connection-ip": ip, ...extra });
+
+  it("the same connection IP twice inside a minute → 429 with retryAfterSeconds", async () => {
+    expect((await POST(fromIp(IP_A))).status).toBe(200);
+    resetMockAiClient();
+
+    const second = await POST(fromIp(IP_A));
+
+    expect(second.status).toBe(429);
+    expect(second.headers.get("Retry-After")).toBe("60");
+    expect(await second.json()).toEqual({ error: rateLimitMessage(60), retryAfterSeconds: 60 });
+    expect(getLastMockRequest()).toBeNull();
+  });
+
+  it("forged forwarding headers don't escape the limit", async () => {
+    await POST(fromIp(IP_A, { "x-forwarded-for": "203.0.113.1" }));
+
+    const forged = await POST(
+      fromIp(IP_A, {
+        "x-forwarded-for": "203.0.113.2",
+        "client-ip": "203.0.113.3",
+        "x-real-ip": "203.0.113.4",
+        forwarded: "for=203.0.113.5",
+        cookie: "ip=203.0.113.6",
+      }),
+    );
+
+    expect(forged.status).toBe(429);
+  });
+
+  it("different connection IPs get separate buckets", async () => {
+    expect((await POST(fromIp(IP_A))).status).toBe(200);
+    expect((await POST(fromIp(IP_B))).status).toBe(200);
+  });
+
+  it("no connection IP header → one shared bucket, whatever else is sent", async () => {
+    expect((await POST(summarizeRequest({ excerpt: EXCERPT }, { "x-forwarded-for": IP_A }))).status).toBe(200);
+
+    const other = await POST(summarizeRequest({ excerpt: EXCERPT }, { "x-forwarded-for": IP_B }));
+
+    expect(other.status).toBe(429);
+  });
+
+  it("an input rejection doesn't use up the minute", async () => {
+    const rejected = await POST(
+      summarizeRequest({ excerpt: "" }, { "x-nf-client-connection-ip": IP_A }),
+    );
+    expect(rejected.status).toBe(400);
+
+    expect((await POST(fromIp(IP_A))).status).toBe(200);
+  });
+
+  it("a failed AI call still uses up the minute", async () => {
+    vi.stubEnv("AI_MOCK_SCENARIO", "timeout");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect((await POST(fromIp(IP_A))).status).toBe(504);
+    expect((await POST(fromIp(IP_A))).status).toBe(429);
+    errorSpy.mockRestore();
+  });
+
+  it("logs only whether the IP header was present, never the IP", async () => {
+    await POST(fromIp(IP_A));
+    await POST(summarizeRequest({ excerpt: EXCERPT }));
+
+    expect(infoSpy.mock.calls).toEqual([
+      ["rate_limit_key", { ipHeaderPresent: true }],
+      ["rate_limit_key", { ipHeaderPresent: false }],
+    ]);
+    expect(JSON.stringify(infoSpy.mock.calls)).not.toContain(IP_A);
   });
 });

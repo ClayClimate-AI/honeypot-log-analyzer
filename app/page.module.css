@@ -336,6 +336,12 @@
   color: #a7f3d0;
 }
 
+.alertRate {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fde68a;
+}
+
 .alertFail {
   background: rgba(248, 113, 113, 0.1);
   border-color: rgba(248, 113, 113, 0.35);

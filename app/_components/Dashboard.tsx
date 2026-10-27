@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useEffect, useState, type DragEvent } from "react";
 import {
   checkExcerptBasics,
   MAX_UPLOAD_BYTES,
@@ -50,7 +50,19 @@ export function Dashboard() {
   // Failure-guard or output-guard message from the server (D5, D7). The
   // previous result stays on screen underneath it.
   const [aiFailure, setAiFailure] = useState<string | null>(null);
+  // The server's 429 (D8). While set, Summarize is disabled; this is a
+  // convenience only, the server enforces the limit.
+  const [rateLimit, setRateLimit] = useState<{ message: string; seconds: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Re-enable Summarize, and drop the now-stale wait message, when the wait is over.
+  useEffect(() => {
+    if (!rateLimit) {
+      return;
+    }
+    const timer = setTimeout(() => setRateLimit(null), rateLimit.seconds * 1000);
+    return () => clearTimeout(timer);
+  }, [rateLimit]);
 
   async function handleSummarize() {
     // Fast feedback only; the server checks again either way.
@@ -72,6 +84,9 @@ export function Dashboard() {
         setResult(await response.json());
       } else if (response.status === 400) {
         setInputError((await response.json()).error);
+      } else if (response.status === 429) {
+        const body = await response.json();
+        setRateLimit({ message: body.error, seconds: body.retryAfterSeconds });
       } else {
         const body = await response.json().catch(() => null);
         setAiFailure(typeof body?.error === "string" ? body.error : NETWORK_FAILURE_MESSAGE);
@@ -191,7 +206,7 @@ export function Dashboard() {
             type="button"
             className={`${styles.btn} ${styles.btnPrimary}`}
             onClick={handleSummarize}
-            disabled={isLoading}
+            disabled={isLoading || rateLimit !== null}
           >
             {isLoading ? "Summarizing…" : "Summarize with AI"}
           </button>
@@ -236,6 +251,13 @@ export function Dashboard() {
           )}
         </div>
 
+        {/* Rate limit state (D8): shown above the previous summary, which stays. */}
+        {rateLimit && (
+          <div className={`${styles.alert} ${styles.alertRate}`} role="status">
+            {rateLimit.message}
+          </div>
+        )}
+
         {/* Failure state (D7): shown above the previous summary, which stays. */}
         {aiFailure && (
           <div className={`${styles.alert} ${styles.alertFail}`} role="alert">
@@ -263,7 +285,7 @@ export function Dashboard() {
           </div>
         ) : (
           <div>
-            {!aiFailure && (
+            {!aiFailure && !rateLimit && (
               <div className={`${styles.alert} ${styles.alertOk}`} role="status">
                 Ready. Paste a Cowrie excerpt, then press Summarize with AI.
               </div>

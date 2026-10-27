@@ -28,6 +28,12 @@ npm run lint
 npm test
 ```
 
+## Rate limit (known limitation)
+
+The summarize route allows one summary per minute per client. The client is identified only by Netlify's `x-nf-client-connection-ip` header, hashed before it is stored and never logged; forwarding headers such as `x-forwarded-for` are ignored, so they can't be used to dodge the limit. Without that header (always the case locally), every request shares one bucket.
+
+The limiter is in memory. On Netlify each function instance keeps its own count, and a cold start resets it, so the limit is best effort. The hard backstop is the monthly spend limit on the Anthropic workspace that holds the API key.
+
 ## Secrets
 
 The API key lives only in `.env.local` (git-ignored) and in Netlify environment variables when deployed. `.env.example` holds no real values. `AI_MODE` defaults to `mock` when unset.

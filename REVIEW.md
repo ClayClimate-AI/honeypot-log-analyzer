@@ -1,96 +1,90 @@
-# REVIEW.md: Ticket #10 (output guard, threat badge + failure guard)
+# REVIEW: Ticket #12 (rate limit)
 
-Verifier pass, Oct 27 2026. Every result here comes only from commands I ran myself (`git status`, `git diff`, R1 to R6, read-only `find`/`grep`) and from files I read. New (untracked) files, read in full: `lib/outputGuard.ts`, `lib/outputGuard.test.ts`, `lib/aiFailure.ts`, `lib/aiFailure.test.ts`. Tracked diffs: `.claude/progress.txt`, `CLAUDE.md`, `app/_components/Dashboard.tsx`, `app/api/summarize/route.ts`, `app/api/summarize/route.test.ts`, `app/page.module.css`, `lib/aiClient.ts`, `lib/liveAiClient.ts`, `lib/mockAiClient.ts`, `package.json`, `package-lock.json`. Also read: `lib/prompt.ts` (unchanged), `lib/liveAiClient.ts` (full), `.gitignore`, and the ticket file `.scratch/cowrie-summarizer/issues/10-output-and-failure-guards.md`.
+Verifier subagent, Oct 27 2026. Evidence was gathered independently from `git status`, `git diff`, full reads of new files, and runtime checks R1 to R6. The builder's summary was not relied on.
 
-**Result: 40 PASS / 0 FAIL** (4 N/A). Runtime checks R1 to R6 all passed.
+**Result: ready to commit. R1 to R6 are green. 33 PASS / 0 FAIL (1 boundary and check 11 N/A).**
+
+## Scope seen
+
+- `git status`: modified `.claude/progress.txt`, `CLAUDE.md`, `README.md`, `app/_components/Dashboard.tsx`, `app/api/summarize/route.test.ts`, `app/api/summarize/route.ts`, `app/page.module.css`. Untracked: `lib/rateLimit.ts`, `lib/rateLimit.test.ts`. This matches the Session state lists exactly.
+- `CLAUDE.md` hunks are only in section 10 (Session state). `EVIDENCE.md`, `lib/prompt.ts` and `fixtures/` are unchanged.
+- `.gitignore` has `.env*` / `!.env.example`. `git status --ignored` reports `.env.local` as ignored (`!!`), and it is not in the untracked list.
 
 ## Runtime checks
 
 | # | Check | Result | Output |
 |---|---|---|---|
-| R1 | `npm run typecheck` | PASS | `next typegen && tsc --noEmit` → "Types generated successfully", exit 0 |
+| R1 | `npm run typecheck` | PASS | `next typegen && tsc --noEmit`, "Types generated successfully", exit 0 |
 | R2 | `npm run lint` | PASS | `eslint`, no output, exit 0 |
-| R3 | `npm test` | PASS | Vitest 5.0.5: "Test Files 9 passed (9) · Tests 118 passed (118)", exit 0 |
-| R4 | Dev server `AI_MODE=mock npx next dev --hostname 127.0.0.1 --port 3100` | PASS | `GET /` returned 200 after about 1 s |
-| R5 | Routes | PASS | See below |
-| R6 | Stop server | PASS | `lsof -ti tcp:3100` → one PID; `kill` on that PID; re-run of `lsof` returned nothing (exit 1); background task ended with 143 (SIGTERM, expected) |
+| R3 | `npm test` | PASS | `Test Files 10 passed (10)`, `Tests 142 passed (142)`, exit 0 |
+| R4 | Dev server `AI_MODE=mock`, 127.0.0.1:3100 | PASS | "Ready in 277ms", `GET / 200` on the first poll |
+| R5 | Routes (see below) | PASS | All status codes and bodies matched the ticket and D6/D8 |
+| R6 | Stop server | PASS | `lsof -ti tcp:3100` gave one PID, which was killed. A second `lsof` returned nothing (exit 1), so port 3100 is free. |
 
-R5 detail (mock mode, all on `http://localhost:3100`):
-- `GET /` → 200. HTML contains "Mock AI" (pill); does not contain "Nothing was charged".
-- `POST /api/summarize` with the spec sample payload → 200 `{"summary":"Mock reply: no AI model was called. ...","threatLabel":"medium","mode":"mock","usage":{"inputTokens":0,"outputTokens":0},"costUsd":0}`. Summary is 2 sentences, under 600 chars, so it passed the new Zod check on the real route.
-- `POST` `{"excerpt":"   "}` → 400 `{"error":"Paste or upload a Cowrie log excerpt first."}`.
-- `POST` `{"excerpt":"hello world","mode":"live"}` → 400 `{"error":"This doesn't look like Cowrie JSON log output."}` (mode in the body ignored).
-- `POST` 4,001-char excerpt → 400 `{"error":"That excerpt is 4,001 characters. The limit is 4,000, so trim it and try again."}`.
-- `POST` body `not json` → 400 empty-excerpt message.
-- `POST` an injection-style Cowrie line containing `</log_excerpt>` → 200 mock contract (input path accepts it; tag neutralized in `buildUserMessage`).
-- Dev server log: no `error`, `Error`, `ai_` or warn lines during these requests.
-- N/A at runtime: the `bad_output`, `refusal`, `timeout` and `rate_limited` scenarios need `AI_MOCK_SCENARIO` set on the server, which is outside the one dev-server command I am allowed to run. They are covered by the route-seam tests in R3 (`app/api/summarize/route.test.ts`, "output and failure guards (D5, D7)"), which call the real `POST` handler. Live mode N/A (never run by the verifier; costs money).
+R5 detail (no connection-IP header unless stated, so these requests use the shared bucket):
+1. `GET /` → 200. Page has the pills "Mock AI", "Sample logs only", "Next.js on Netlify", "1 request / min", and the cost note "Cap: 4,000 characters · about $0.0001–$0.0003 per call (Claude Haiku 5.5) · measured cost shown after each call".
+2. `POST /api/summarize` with the sample payload → 200, `{"summary":"Mock reply: ...","threatLabel":"medium","mode":"mock","usage":{"inputTokens":0,"outputTokens":0},"costUsd":0}`.
+3. The same POST again → 429, `retry-after: 56`, `{"error":"Only one summary per minute. Try again in about 56 seconds.","retryAfterSeconds":56}`.
+4. POST with forged `x-forwarded-for`, `x-real-ip`, `client-ip`, `forwarded` and `cookie` → 429 (still the shared bucket).
+5. POST with an IP in the query string and in the body → 429 (still the shared bucket).
+6. `x-nf-client-connection-ip: 198.51.100.50` with a whitespace excerpt → 400 "Paste or upload a Cowrie log excerpt first."; a non-Cowrie excerpt → 400 "This doesn't look like Cowrie JSON log output."; then a valid excerpt → 200 mock. The two input rejections did not use up the minute, and this IP got its own bucket.
+7. The same IP again, plus a forged `x-forwarded-for` → 429.
+8. `x-nf-client-connection-ip: 198.51.100.51` with 4,001 chars → 400 "That excerpt is 4,001 characters. The limit is 4,000, so trim it and try again."
+9. The server log showed only `rate_limit_key { ipHeaderPresent: false|true }`. No connection IP appeared in app log lines. The query string appeared only in Next's own dev request line, which comes from my test URL and not from app code.
 
 ## Week 6 spec checks
 
-1. One AI feature only: **PASS**. The diff adds guards around the single summarize call in `app/api/summarize/route.ts`; no new AI feature or route.
-2. Back end only: **PASS**. The SDK is imported only in `lib/liveAiClient.ts`, `lib/mockAiClient.ts`, `lib/aiFailure.ts` (server modules used by the route); `Dashboard.tsx` (`"use client"`) imports only `type ThreatLabel` from `lib/outputGuard.ts`, which is erased at compile time, and calls only `fetch("/api/summarize")`.
-3. Secret key: **PASS**. `lib/liveAiClient.ts` reads `process.env.ANTHROPIC_API_KEY` only; the route logs only `failure.code` + `failure.logDetail` (numbers/short strings) and never the error object; the only `sk-ant-` string in the repo is the obvious test placeholder at `app/api/summarize/route.test.ts:148`.
-4. System prompt in code: **PASS**. `lib/prompt.ts` is not in the diff (wording untouched); its 7 parts cover role/audience (`role`), task (`task`), untrusted `<log_excerpt>` (`untrustedData`), never add facts (`neverAddFacts`), unknown when unsure (`ifUnsure`), defender framing (`defenderFraming`), and format with two fields, four labels, 3 sentences / 600 chars, no markdown or HTML (`format`).
-5. Guardrail, bad input: **PASS**. Route runs `checkExcerpt` before the AI call; runtime curls above returned 400 for empty, oversized, non-Cowrie and non-JSON bodies.
-6. Guardrail, bad output: **PASS**. `lib/outputGuard.ts` `checkAiReply` rejects refusal, invalid JSON and Zod failures (summary trimmed 1 to 600 chars, at most 3 sentences; label one of four); route returns 502 `BAD_OUTPUT_MESSAGE` before anything is shown.
-7. Guardrail, failure: **PASS**. Route wraps the AI call in try/catch; `lib/aiFailure.ts` `mapAiError` returns fixed messages and a `logDetail` of status or elapsed ms only; `lib/aiFailure.test.ts` checks raw text, headers and stack never appear; `lib/liveAiClient.ts` keeps 8,000 ms / 0 retries.
-8. Cost awareness: **PASS**. 4,000-char cap still enforced (runtime 400 above); cost note and measured `costUsd` unchanged from #5/#9 follow-up; `max_tokens` 2,048 caps output.
-9. Rate limit: **N/A**. Ticket #12.
-10. Local and clean repo: **PASS**. No real-looking key in the diff or new files (grep for `sk-ant-` with 20+ trailing chars matched only the test placeholder); `.env.local` exists but is not in `git status` and `.gitignore` has `.env*` with `!.env.example`; lock-file diff is only `zod` moving to a direct dependency.
-11. Fixture clean: **N/A**. `fixtures/sample-session.jsonl` is not new or changed in this ticket (not in `git status`); its existing test still passes in R3.
-12. Rate limit key not client controlled: **N/A**. No limiter yet (#12); grep of `app/` and `lib/` finds no `x-forwarded-for`, `x-real-ip`, `client-ip` or `x-nf-client` reads.
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| 1 | One AI feature only | PASS | The diff adds only a limiter around the existing summarize call. There is no new AI call. |
+| 2 | Back end only | PASS | The SDK/key are referenced only in `lib/liveAiClient.ts`, `lib/aiFailure.ts`, `lib/mockAiClient.ts` and server code. `Dashboard.tsx` only `fetch`es `/api/summarize`. |
+| 3 | Secret key | PASS | There is no key in the diff or the new files. The only key-like string is the pre-existing placeholder `FAKE_KEY` test constant (`route.test.ts:151`). `.env.local` is ignored. |
+| 4 | System prompt in code | PASS | `lib/prompt.ts` is unchanged this ticket. `SYSTEM_PROMPT_PARTS` covers all 7 D12 rules: role, task, untrustedData, neverAddFacts, ifUnsure, defenderFraming, format. |
+| 5 | Guardrail, bad input | PASS | `route.ts` runs `checkExcerpt` before `takeRateLimit` and the AI call. R5 items 6 and 8 returned 400. |
+| 6 | Guardrail, bad output | PASS | `route.ts:73-77` runs `checkAiReply` (Zod) before the response. A failure returns 502 with `BAD_OUTPUT_MESSAGE`. |
+| 7 | Guardrail, failure | PASS | `route.ts:61-70` wraps the AI call in try/catch with `mapAiError`, and logs only `code` and `logDetail`. The route test "a failed AI call still uses up the minute" passes. |
+| 8 | Cost awareness | PASS | The 4,000 cap is enforced (R5 item 8) and the cost note is visible on `/` (R5 item 1). |
+| 9 | Rate limit | PASS | R5 item 3: a second request inside a minute → 429 with `retryAfterSeconds` and `Retry-After`. |
+| 10 | Local and clean repo | PASS | It runs locally (R4/R5). There is no secret in `git diff`, `lib/rateLimit.ts` or `lib/rateLimit.test.ts`. |
+| 11 | Fixture clean | N/A | `fixtures/sample-session.jsonl` was not changed this ticket. |
+| 12 | Rate-limit key not client controlled | PASS | `lib/rateLimit.ts:25` reads only `x-nf-client-connection-ip`. A missing or blank header → `"shared"`. The key is `ip:` + SHA-256 (salt + IP). The only log line is a boolean (`route.ts:33`). A grep of non-test `app/` and `lib/` finds no read of `x-forwarded-for`, `x-real-ip`, `client-ip`, `forwarded`, cookies or `searchParams`. R5 items 4, 5 and 7 confirm it at runtime. |
 
-## Ticket #10 acceptance boxes
+## Ticket #12 acceptance boxes
 
-Output guard + threat badge
-- **PASS** Zod schema: `lib/outputGuard.ts` `SummarySchema` = `summary` string trim, min 1, max 600, `countSentences <= 3`; `threatLabel` `z.enum(["low","medium","high","unknown"])`.
-- **PASS** Invalid JSON / missing field / bad label / empty or long summary / refusal → 502 "Couldn't produce a reliable summary for this excerpt." and `console.error("ai_bad_output", { reason })`: route lines 43 to 46; each case in `lib/outputGuard.test.ts`.
-- **PASS** `bad_output` (label "none") and `refusal` (stopReason "refusal") mock scenarios exist in `lib/mockAiClient.ts`; route-seam test expects 502 + fallback for both.
-- **PASS** Badge colors: `.threatLow` success (green), `.threatMedium` warn (amber), `.threatHigh` danger (red), new `.threatUnknown` uses `var(--muted)`; `THREAT_BADGE.unknown.text` = "Unknown" → "Threat: Unknown".
-- **PASS** Failure state: `Dashboard.tsx` sets `aiFailure` (red `alertFail`, `role="alert"`) without calling `setResult(null)` or touching `excerpt`, so the previous summary and text stay (code reading; no DOM test in the repo).
-- **PASS** Route-seam tests cover `bad_output`, `refusal` and a schema-valid `success` (`route.test.ts`, new describe block).
+| Box | Result | Evidence |
+|---|---|---|
+| Limiter in the route handler, not edge middleware | PASS | Called from `app/api/summarize/route.ts:32-55`. There is no `middleware.ts` in the diff or the untracked files. |
+| Key = hash of the connection IP; missing → shared; raw IP never stored or logged | PASS | `clientKey` in `lib/rateLimit.ts:24-31`. The map stores only the hashed key. The log is the boolean only (R5 item 9, route test "logs only whether..."). |
+| Never reads forwarding headers, body, query or cookies | PASS | See check 12. |
+| Checked first; minute used only on reaching the AI call | PASS | `checkRateLimit` (line 34) → `checkExcerpt` → `takeRateLimit` (line 52) → AI call. R5 item 6. |
+| 429 + `retryAfterSeconds`; UI message; button disabled until the wait ends | PASS | `tooManyRequests` in `route.ts:16-21`. In `Dashboard.tsx`, `setRateLimit` shows the server's message in `.alertRate`, `disabled={isLoading \|\| rateLimit !== null}`, and a `useEffect` timer clears it after `seconds`. |
+| Route logs one `ipHeaderPresent` boolean | PASS | `route.ts:33`. Seen in the server log (R5 item 9). |
+| Limiter has a test-only reset | PASS | `resetRateLimit` in `lib/rateLimit.ts:68-70`, called in every route `beforeEach`. |
+| Route-seam tests cover the 5 cases | PASS | `route.test.ts` "rate limit (D8)" covers the same IP twice → 429, forged forwarding headers, different IPs, no header → shared, and input rejection doesn't count. It also has a failed-AI-call test and a log test. All pass in R3. |
+| README states the in-memory, per-instance limitation and the spend-limit backstop | PASS | `README.md` has a new "Rate limit (known limitation)" section with both points. |
 
-Failure guard
-- **PASS** Timeout: `APIConnectionTimeoutError` → 504, `ai_timeout` `{ elapsedMs }`, TIMEOUT_MESSAGE matches D7 text; live client 8,000 ms, 0 retries.
-- **PASS** Provider 429 → 503 "The AI service is busy. Try again in a minute.", `ai_rate_limited` `{ status: 429 }`.
-- **PASS** 5xx (500, 529) and connection error → `ai_unavailable` with status or "none", timeout message (`lib/aiFailure.test.ts`).
-- **PASS** 401/403 → `ai_auth_error` `{ status }` only, timeout message; test error carries an `x-api-key` header and raw text, neither appears in the mapped failure.
-- **PASS** Error bodies are `{ error: <fixed message> }` only; route-seam test checks body and log for the fake key, provider text, request id, "stack" and "Error".
-- **PASS** After failure: text box, previous summary, sample button and upload are untouched; the three buttons disable only while `isLoading`.
-- **PASS** "Nothing was charged" not present in `app/` or `lib/` or the served page.
-- **PASS** `timeout` and `rate_limited` mock scenarios throw the SDK's own error classes; route-seam tests cover both with leak checks.
-- **PASS** Evidence available to Joseph: the on-screen failure messages and states now exist for him to describe (agents did not write `EVIDENCE.md`; it is not in the diff).
+## End-to-end boundaries
 
-## End-to-end validation (boundaries)
+| Boundary | Result | Evidence |
+|---|---|---|
+| Source data | N/A | The fixture was not changed this ticket (verified in #9). |
+| Input | PASS | The server-side `checkExcerpt` runs before the minute is used. R5 items 6 and 8. |
+| Secret key | PASS | Key only from env in `lib/liveAiClient.ts`. `.env.local` is ignored. There is no key in the diff. |
+| System prompt | PASS | `lib/prompt.ts` is unchanged and contains all 7 rules. |
+| AI output schema | PASS | `checkAiReply` sits between the AI reply and `Response.json` (`route.ts:73`). |
+| API failures | PASS | try/catch + `mapAiError`. Only codes are logged. A failed call still uses up the minute, as in the D8 wording "reaches the AI call". |
+| Display | PASS | The 429 message renders as text in a `role="status"` div. The previous summary stays, and the Ready alert is hidden while the limit is active. |
 
-- Source data: **PASS**. Fixture unchanged; `fixtures/sample-session.test.ts` passes in R3.
-- Input: **PASS**. Server-side `checkExcerpt` before the AI call (runtime 400s above).
-- Secret key: **PASS**. Env only, lazily read on the server, never logged or returned.
-- System prompt: **PASS**. In `lib/prompt.ts`, server only, not from user input, unchanged.
-- AI output schema: **PASS**. `checkAiReply` (Zod) gates every reply, mock and live alike.
-- API failures: **PASS**. try/catch + `mapAiError`; 504/503 with fixed messages; short log codes.
-- Display: **PASS**. `{result.summary}` rendered as React text (no `dangerouslySetInnerHTML`); badge class looked up from the validated four-label enum.
+## Prompt injection
 
-## Prompt injection note
+PASS. `buildUserMessage` still wraps the excerpt in `<log_excerpt>` after `neutralizeExcerptTags`. System prompt rule `untrustedData` marks the tag contents as untrusted. This ticket does not touch that path.
 
-**PASS**. `buildUserMessage` still wraps the excerpt in `<log_excerpt>` and neutralizes any `log_excerpt` tags inside it; prompt rule `untrustedData` marks the contents as untrusted. New this ticket: the Zod check is the backstop (D14), so even a redirected model can only return a 1 to 600 char, at most 3-sentence summary and one of four labels; an out-of-set label like "none" (the `bad_output` scenario) gets the fallback. The log `reason` names only field + rule, never reply text (`outputGuard.test.ts` "never puts reply text in the log reason").
+## Advisory (not FAILs, no action required)
 
-## Housekeeping
-
-- **PASS** `git status` untracked list (`lib/aiFailure.ts`, `lib/aiFailure.test.ts`, `lib/outputGuard.ts`, `lib/outputGuard.test.ts`) matches the Session state "New (untracked) files" list; changed-file list matches too.
-- **PASS** `.env.local` present on disk, ignored by `.env*`, not in the untracked list. I read only its variable names, not values.
-
-## Advisory only (not FAILs)
-
-- `countSentences` counts any `.`/`!`/`?` followed by whitespace, so abbreviations ("e.g. ", "approx. ") or a quoted command ending in a period can push a valid 3-sentence summary to 4 and show the fallback. Worth watching in Joseph's live runs for C9.
-- HTTP 503 for auth/unavailable and the browser-only message "Couldn't reach the server. Your log text is still here; try again in a moment." are builder choices (D7 sets only the messages); Joseph to confirm wording.
-- No DOM/component tests, so the failure-state UI is verified by code reading only; worth one manual check in the browser with `AI_MOCK_SCENARIO=timeout`.
-- Session state "Git: commits so far" line does not list 809e57b (#9) or acea1da (cost-note follow-up).
-- Production build not run (not allowed for the verifier).
+- `Dashboard.tsx:88`: the 429 branch calls `response.json()` without `.catch`, and it does not check that `retryAfterSeconds` is a number. A 429 from somewhere other than the route (for example a platform limit with a non-JSON body) would land in the outer catch and show the network message. A JSON 429 without the field would clear at once. The page still works either way.
+- Because the limiter runs before the body is parsed, a blocked client gets 429 even for empty input. This matches "the limiter is checked first".
+- Local dev has no Netlify header, so all local requests share one bucket. As documented, whether Netlify really sends the header is proven only at deploy.
 
 ## Must fix before commit
 
-None. 0 FAIL items.
-
-── REVIEW DONE: 40 PASS / 0 FAIL ──
+None.
