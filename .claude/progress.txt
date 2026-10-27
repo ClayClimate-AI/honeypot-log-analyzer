@@ -1,4 +1,4 @@
-stage: H
-step: H3 (1 of 1)
-issue: #12 follow-up
-title: 429 fallback (body, Retry-After, 60 s) capped at 300 s (ready to commit)
+stage: C
+step: C9 (9 of 9)
+issue: #5
+title: Live runs with rate limit and Zod check, then prompt-only change if needed (not started)
