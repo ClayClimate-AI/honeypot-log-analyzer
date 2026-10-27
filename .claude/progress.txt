@@ -1,4 +1,4 @@
-stage: D
-step: D5 (5 of 5)
-issue: #8
-title: Verifier pass
+stage: E
+step: E7 (7 of 7)
+issue: #9
+title: Pre-commit cleanup + cost note check

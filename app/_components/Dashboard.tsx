@@ -6,6 +6,7 @@ import {
   MAX_UPLOAD_BYTES,
   uploadTooLargeMessage,
 } from "../../lib/inputGuard";
+import sampleLogs from "../../fixtures/sample-session.jsonl";
 import styles from "../page.module.css";
 
 // Matches the summarize route's success body.
@@ -77,6 +78,16 @@ export function Dashboard() {
       return;
     }
     setExcerpt(await file.text());
+    // A new input replaces the box, so an older summary would look like its own.
+    setResult(null);
+    setInputError(null);
+  }
+
+  // The sample is bundled into this page, so it fills the text box like a
+  // paste and then takes the same POST, input guard and rate limit (D3).
+  function handleLoadSample() {
+    setExcerpt(sampleLogs);
+    setResult(null);
     setInputError(null);
   }
 
@@ -166,6 +177,14 @@ export function Dashboard() {
             disabled={isLoading}
           >
             {isLoading ? "Summarizing…" : "Summarize with AI"}
+          </button>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            onClick={handleLoadSample}
+            disabled={isLoading}
+          >
+            Load sample logs
           </button>
           <button
             type="button"
