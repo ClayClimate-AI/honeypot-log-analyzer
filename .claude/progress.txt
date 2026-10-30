@@ -1,4 +1,4 @@
 stage: C
-step: C9 (9 of 9)
+step: C9 (9 of 9) done
 issue: #5
-title: Summary format 6 sentences / 700 chars, prompt v2, cost note (ready to commit)
+title: Committed as 97b276b; next #13 (optional deploy) or #14, Joseph picks
