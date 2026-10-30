@@ -36,6 +36,7 @@ Before writing any review, run these yourself, in this order, from the repo root
   - `POST http://localhost:3100/api/summarize` with `content-type: application/json` and this sample payload: `{"excerpt":"{\"eventid\":\"cowrie.login.failed\",\"username\":\"root\",\"password\":\"123456\",\"src_ip\":\"203.0.113.42\"}"}`. Expect the status and body the current ticket and the spec's API contract call for. In mock mode the body has `mode: "mock"` and zero usage.
   - Any other route or behavior the current ticket adds or changes, with a sample request for each (for example, a guard rejection or a 429 once those tickets exist).
 - R6. Stop the dev server you started (`lsof -ti tcp:3100`, then `kill` on that process ID only), and confirm port 3100 is free.
+- Build log (Week 7, CLAUDE.md §11): if `build.log` exists at the repo root, read it and report whether the builder's `npm run build` succeeded (PASS) or failed (FAIL, with the error lines). You still never run `npm run build` yourself. If the current step requires a build and `build.log` is missing, that is a FAIL.
 
 Rules:
 - Any R check that fails is a FAIL and goes on the "Must fix before commit" list. If any R check fails, the review does not pass: write "Not ready to commit: runtime checks failed" at the top of REVIEW.md. Nothing is committed until R1 to R6 are all green.

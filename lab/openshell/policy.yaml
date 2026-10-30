@@ -1,0 +1,28 @@
+# Deny by default. Only the listed programs may reach the listed hosts.
+# api.anthropic.com is not here: it comes from the claude-code provider profile,
+# so the key is bound to that host and to /usr/local/bin/claude only.
+version: 1
+network_policies:
+  # Demo test 1a: curl may reach the GitHub API, nothing else.
+  github_api:
+    endpoints:
+      - host: api.github.com
+        port: 443
+    binaries:
+      - path: /usr/bin/curl
+  # Build: npm ci and adding packages.
+  npm_registry:
+    endpoints:
+      - host: registry.npmjs.org
+        port: 443
+    binaries:
+      - path: /usr/bin/node
+  # Build: next/font/google in app/layout.tsx downloads Geist at dev and build time.
+  google_fonts:
+    endpoints:
+      - host: fonts.googleapis.com
+        port: 443
+      - host: fonts.gstatic.com
+        port: 443
+    binaries:
+      - path: /usr/bin/node
