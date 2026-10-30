@@ -37,7 +37,7 @@ A one-request-per-minute limit per client protects the key. The public site only
 3. As a security analyst, I want a threat label of low, medium, high or unknown, so that I can triage at a glance.
 4. As a security analyst, I want the label to say unknown when the excerpt is gibberish, off-topic or too thin, so that the AI says it's unsure instead of guessing.
 5. As a security analyst, I want the summary to stick to facts that are in the excerpt, so that I'm not misled by invented details.
-6. As a security analyst, I want the summary to be at most three sentences and 600 characters, so that it stays scannable.
+6. As a security analyst, I want the summary to be at most six sentences and 700 characters, so that it stays scannable.
 7. As a security analyst, I want the summary to be written from a defender's point of view, never as attack instructions, so that the tool stays defensive.
 8. As a defender treating the honeypot as an early warning, I want a fast read of what the attacker tried, so that I can check the real equipment before it's reached.
 9. As a visitor, I want to upload a log file instead of pasting, so that I don't have to copy large text by hand.
@@ -91,7 +91,7 @@ A one-request-per-minute limit per client protects the key. The public site only
 47. As the site owner, I want the per-instance, in-memory nature of the limit documented as a known limitation, with the workspace spend cap as the hard backstop, so that the risk is stated honestly.
 
 ### Cost
-48. As a visitor, I want a cost note before I submit ("Cap: 4,000 characters · about $0.0001–$0.0003 per call (Claude Haiku 5.5) · measured cost shown after each call"), so that I know the feature is capped and cheap.
+48. As a visitor, I want a cost note before I submit ("Cap: 4,000 characters · about $0.0001–$0.0008 per call (Claude Haiku 5.5) · measured cost shown after each call"), so that I know the feature is capped and cheap.
 49. As a visitor, I want the measured input and output tokens and that call's cost shown after a summary, so that the cost is real, not guessed.
 50. As the site owner, I want cost calculated on the server from the reported usage and dated price constants, so that the figure is traceable and easy to update.
 51. As the site owner, I want the key in a dedicated workspace with about a $5 monthly spend limit, so that a leaked key or abuse has a hard ceiling.
@@ -151,7 +151,7 @@ A one-request-per-minute limit per client protects the key. The public site only
   - empty or whitespace only
   - over 4,000 characters, reported with the count
   - at least one line is a JSON object whose `eventid` starts with `cowrie.`
-- **Output guard:** a Zod schema `{ summary: string (1 to 600 chars, at most 3 sentences), threatLabel: "low" | "medium" | "high" | "unknown" }`, plus parsing of the raw model text. A refusal stop reason fails this guard.
+- **Output guard:** a Zod schema `{ summary: string (1 to 700 chars, at most 6 sentences), threatLabel: "low" | "medium" | "high" | "unknown" }`, plus parsing of the raw model text. A refusal stop reason fails this guard.
 - **AI client:** a thin wrapper around the Anthropic TypeScript SDK and the only thing mock mode replaces. It sends the system prompt and a user message with the excerpt wrapped in `<log_excerpt>` tags. Settings:
   - model `claude-haiku-5-5`
   - effort `low`
@@ -254,7 +254,7 @@ A one-request-per-minute limit per client protects the key. The public site only
 ## Further Notes
 
 - **Honeypot as an early warning:** a fake BACnet controller on the network gets touched first and alerts you before the real equipment is reached. Cowrie emulates SSH, not BACnet, so this project covers the Linux/SSH side of that idea. A BACnet decoy with alerting is the natural follow-on, outside Week 6.
-- **Joseph-owned pieces:** agents never write the system prompt wording (pasted word for word in the AI-call ticket) or anything in EVIDENCE.md.
+- **Joseph-owned pieces:** agents never write the system prompt wording (pasted word for word in the AI-call ticket) or the words of any answer in EVIDENCE.md. Joseph writes every answer; agents only format it, after Joseph's yes, per the EVIDENCE.md answer format rule in CLAUDE.md §6.
 - **Facts to confirm inside tickets:**
   - the Cowrie host port mapping and the host path of `cowrie.json` (fixture ticket, read-only docker commands with Joseph's OK)
   - the current Netlify function time limit (deploy ticket)

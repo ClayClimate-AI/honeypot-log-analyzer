@@ -45,11 +45,15 @@ describe("checkAiReply (D5)", () => {
     });
   });
 
-  it("accepts a summary of exactly 600 characters and 3 sentences", () => {
+  it("accepts a summary of exactly 700 characters and 3 sentences", () => {
     const summary = "A. B. " + "c".repeat(MAX_SUMMARY_CHARS - 7) + ".";
     expect(summary.length).toBe(MAX_SUMMARY_CHARS);
 
     expect(checkAiReply(json({ summary, threatLabel: "low" })).ok).toBe(true);
+  });
+
+  it("accepts a summary of exactly 6 sentences", () => {
+    expect(checkAiReply(json({ summary: "A. B. C. D. E. F.", threatLabel: "low" })).ok).toBe(true);
   });
 
   it.each([
@@ -60,8 +64,8 @@ describe("checkAiReply (D5)", () => {
     ["a label outside the four", json({ summary: SUMMARY, threatLabel: "none" }), "threatLabel: invalid_value"],
     ["an empty summary", json({ summary: "", threatLabel: "low" }), "summary: too_small"],
     ["a whitespace-only summary", json({ summary: "  \n ", threatLabel: "low" }), "summary: too_small"],
-    ["a 601-character summary", json({ summary: "x".repeat(601), threatLabel: "low" }), "summary: too_big"],
-    ["four sentences", json({ summary: "A. B. C. D.", threatLabel: "low" }), "summary: too_many_sentences"],
+    ["a 701-character summary", json({ summary: "x".repeat(701), threatLabel: "low" }), "summary: too_big"],
+    ["seven sentences", json({ summary: "A. B. C. D. E. F. G.", threatLabel: "low" }), "summary: too_many_sentences"],
     ["a refusal", reply(JSON.stringify({ summary: SUMMARY, threatLabel: "low" }), "refusal"), "refusal"],
   ])("rejects %s", (_name, input, reason) => {
     expect(checkAiReply(input)).toEqual({ ok: false, reason });

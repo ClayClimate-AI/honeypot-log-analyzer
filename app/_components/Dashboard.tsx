@@ -234,7 +234,7 @@ export function Dashboard() {
             short runs up to the D4 near-cap estimate (D13). */}
         <div className={styles.metaBar}>
           <span>
-            Cap: <strong>4,000</strong> characters · about <strong>$0.0001–$0.0003</strong> per
+            Cap: <strong>4,000</strong> characters · about <strong>$0.0001–$0.0008</strong> per
             call (Claude Haiku 5.5) · measured cost shown after each call
           </span>
         </div>

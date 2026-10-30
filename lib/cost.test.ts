@@ -11,7 +11,8 @@ describe("costUsd", () => {
     expect(costUsd({ inputTokens: 0, outputTokens: 1_000_000 })).toBeCloseTo(0.5);
   });
 
-  // The top of the input card's "$0.0001–$0.0003" range (D13): a near-cap excerpt.
+  // The D4 near-cap estimate (no thinking tokens). The input card's range now
+  // tops out at $0.0008, from measured live sample runs that include thinking (D13).
   it("matches the D4 estimate of about $0.0003 for 1,400 in + 250 out", () => {
     expect(costUsd({ inputTokens: 1_400, outputTokens: 250 })).toBeCloseTo(0.000265, 9);
   });

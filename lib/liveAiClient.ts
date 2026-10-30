@@ -10,7 +10,7 @@ export const MODEL = "claude-haiku-5-5";
 const TIMEOUT_MS = 8_000;
 const MAX_RETRIES = 0;
 
-// Room for low-effort thinking plus a 600-character summary; also caps the
+// Room for low-effort thinking plus a 700-character summary; also caps the
 // output side of the cost.
 const MAX_TOKENS = 2_048;
 

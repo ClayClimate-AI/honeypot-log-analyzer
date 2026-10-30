@@ -8,8 +8,8 @@ import type { AiReply } from "./aiClient";
 export const THREAT_LABELS = ["low", "medium", "high", "unknown"] as const;
 export type ThreatLabel = (typeof THREAT_LABELS)[number];
 
-export const MAX_SUMMARY_CHARS = 600;
-export const MAX_SUMMARY_SENTENCES = 3;
+export const MAX_SUMMARY_CHARS = 700;
+export const MAX_SUMMARY_SENTENCES = 6;
 
 export const BAD_OUTPUT_MESSAGE = "Couldn't produce a reliable summary for this excerpt.";
 

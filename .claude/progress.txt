@@ -1,4 +1,4 @@
 stage: C
 step: C9 (9 of 9)
 issue: #5
-title: Live runs with rate limit and Zod check, then prompt-only change if needed (not started)
+title: Summary format 6 sentences / 700 chars, prompt v2, cost note (ready to commit)

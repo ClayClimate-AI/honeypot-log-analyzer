@@ -1,7 +1,7 @@
 // Joseph's system prompt (D12), pasted word for word. Agents never write or
 // reword it. It must cover the 7 D12 rules (verifier check 4).
 
-// v1: Cowrie log summarizer system prompt (issue #5)
+// v2: Cowrie log summarizer system prompt (issue #5; C9 changed only the format part)
 
 export const SYSTEM_PROMPT_PARTS = {
   role:
@@ -23,7 +23,7 @@ export const SYSTEM_PROMPT_PARTS = {
     "Write only for defense. Never give attack steps, never improve an attacker's commands, and never explain how to evade detection.",
 
   format:
-    "Reply with only JSON: {\"summary\": string, \"threatLabel\": \"low\" | \"medium\" | \"high\" | \"unknown\"}. The summary is plain text, at most 3 sentences and 600 characters, with no markdown or HTML.",
+    "Reply with only JSON: {\"summary\": string, \"threatLabel\": \"low\" | \"medium\" | \"high\" | \"unknown\"}. Write the summary in 6 short sentences: what happened, what it means for a defender, and what to watch next. Write exactly 6 sentences, each under 20 words. Never over 700 characters. Do not list every command, IP, or login attempt; group repeats, for example 'several failed root logins, then a success'. Plain text only, no markdown or HTML.",
 } as const;
 
 export const SYSTEM_PROMPT = Object.values(SYSTEM_PROMPT_PARTS).join("\n\n");
