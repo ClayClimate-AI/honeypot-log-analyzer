@@ -37,3 +37,12 @@ network_policies:
         port: 443
     binaries:
       - path: /usr/local/bin/claude
+  # Build: Prisma CLI downloads its engine files during install and prisma generate. Read only.
+  prisma_engines:
+    endpoints:
+      - host: binaries.prisma.sh
+        port: 443
+        protocol: rest
+        access: read-only
+    binaries:
+      - path: /usr/bin/node
