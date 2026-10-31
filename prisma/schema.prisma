@@ -1,0 +1,46 @@
+// Week 7 Step 3 (planned #16 part 1, D18): saved summaries in Neon Postgres.
+// The database URL lives in prisma.config.ts (Prisma 7), not here. The app
+// connects through @prisma/adapter-neon (lib/prismaRunStore.ts).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ThreatLabel {
+  low
+  medium
+  high
+  unknown
+}
+
+enum AiMode {
+  mock
+  live
+}
+
+// One row per saved summary. Never the raw excerpt: only its length and
+// SHA-256 hash. Attacker IPs in the summary are replaced with "attacker IP"
+// before the row is written (lib/redactIps.ts).
+model SavedRun {
+  id            String      @id @default(uuid()) @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  summary       String
+  threatLabel   ThreatLabel @map("threat_label")
+  mode          AiMode
+  inputTokens   Int         @map("input_tokens")
+  outputTokens  Int         @map("output_tokens")
+  costUsd       Decimal     @map("cost_usd") @db.Decimal(12, 8)
+  excerptLength Int         @map("excerpt_length")
+  excerptSha256 String      @map("excerpt_sha256") @db.Char(64)
+
+  // Step 4 lists newest first, counts today's saves and skips a duplicate
+  // hash within 24 h; these indexes serve those queries.
+  @@index([createdAt])
+  @@index([excerptSha256, createdAt])
+  @@map("saved_runs")
+}
