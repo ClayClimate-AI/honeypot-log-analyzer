@@ -16,7 +16,7 @@ Joseph's real Anthropic key stays with Joseph. Inside the sandbox you only ever 
 
 ## Where you are
 - Repo at `/sandbox/hp-fresh` (a fresh clone; no .env files).
-- Allowed: Anthropic (only as /usr/local/bin/claude, through the provider), the npm registry and Google Fonts (node), api.github.com (curl). Everything else is denied, including github.com.
+- Allowed: Anthropic (only as /usr/local/bin/claude, through the provider), platform.claude.com (only as /usr/local/bin/claude), the npm registry and Google Fonts (node), api.github.com (curl). Everything else is denied, including github.com.
 - If a host is denied, report the DENIED log line (Joseph can run `openshell logs build --since 5m --source sandbox` on his Mac) and stop. Do not work around it. Joseph decides whether to add a named rule.
 - You never connect to the real Neon database. Build and test against an injected fake store. Joseph runs migrations on his Mac.
 

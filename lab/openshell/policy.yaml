@@ -1,6 +1,7 @@
 # Deny by default. Only the listed programs may reach the listed hosts.
 # api.anthropic.com is not here: it comes from the claude-code provider profile,
 # so the key is bound to that host and to /usr/local/bin/claude only.
+# platform.claude.com is opened below (claude_platform) for that same binary; no key rides on it.
 version: 1
 network_policies:
   # Demo test 1a: curl may reach the GitHub API, nothing else.
@@ -26,3 +27,10 @@ network_policies:
         port: 443
     binaries:
       - path: /usr/bin/node
+  # Claude Code: platform.claude.com, reached only by the copied claude binary.
+  claude_platform:
+    endpoints:
+      - host: platform.claude.com
+        port: 443
+    binaries:
+      - path: /usr/local/bin/claude
