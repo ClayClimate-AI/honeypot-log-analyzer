@@ -12,6 +12,7 @@ import {
   takeRateLimit,
   type RateCheck,
 } from "../../../lib/rateLimit";
+import { buildSavedRun, saveRunSafely } from "../../../lib/runStore";
 
 function tooManyRequests(check: Extract<RateCheck, { ok: false }>): Response {
   return Response.json(
@@ -22,7 +23,8 @@ function tooManyRequests(check: Extract<RateCheck, { ok: false }>): Response {
 
 // The only server entry point and the only place the AI is called (D1).
 // browser → this route → rate limit check → input guard → rate limit taken →
-// AI client (mock or live) → failure guard → output guard → screen.
+// AI client (mock or live) → failure guard → output guard → save (live
+// only) → screen.
 export async function POST(request: Request) {
   // Mode comes only from the server env, never from the request (D9).
   const mode = getAiMode();
@@ -74,6 +76,20 @@ export async function POST(request: Request) {
   if (!output.ok) {
     console.error("ai_bad_output", { reason: output.reason });
     return Response.json({ error: BAD_OUTPUT_MESSAGE }, { status: 502 });
+  }
+
+  // Save only after the output guard passes, and only live runs (D18). The
+  // saved copy has attacker IPs redacted and no raw excerpt. A database
+  // failure is logged and the summary is still returned.
+  if (mode === "live") {
+    await saveRunSafely(
+      buildSavedRun({
+        summary: output.value.summary,
+        threatLabel: output.value.threatLabel,
+        usage: reply.usage,
+        excerpt,
+      }),
+    );
   }
 
   return Response.json({
