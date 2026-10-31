@@ -1,4 +1,4 @@
 stage: W7
-step: 0 (1 of 7)
-issue: none (docs)
-title: Week 7 docs, proven OpenShell guide, CLAUDE.md §11 (waiting on Joseph's commit)
+step: 2 (1 of 6)
+issue: #15
+title: CI (branch feat/ci; R6 + G2 approved; Joseph commits and pushes from his Mac)
