@@ -16,6 +16,8 @@ network_policies:
     endpoints:
       - host: registry.npmjs.org
         port: 443
+        protocol: rest
+        allow_encoded_slash: true
     binaries:
       - path: /usr/bin/node
   # Build: next/font/google in app/layout.tsx downloads Geist at dev and build time.
