@@ -18,6 +18,7 @@ network_policies:
         port: 443
         protocol: rest
         allow_encoded_slash: true
+        access: full
     binaries:
       - path: /usr/bin/node
   # Build: next/font/google in app/layout.tsx downloads Geist at dev and build time.
