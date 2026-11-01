@@ -1,4 +1,19 @@
 stage: W7
-step: 3 (2 of 6)
-issue: #16 part 1
-title: Prisma + Neon schema (branch feat/neon-schema; A4 fixed, R6 skipped; ready to commit; not committed)
+step: 6 (5 of 6)
+issue: #13
+title: Netlify production deploy
+
+done:
+- Step 2 CI (PR #15, merged d5a4e9b)
+- Step 3 Prisma + Neon schema, redacted run save (PR #16, merged bc0c7bc)
+- Migration init_saved_runs (b95cc35); saved_runs live on the Neon dev branch
+- lsof added to the sandbox image (2ae7b32)
+- os-agent:local rebuilt; build sandbox recreated with lsof and git
+
+skipped for now:
+- Phase A2 CRUD routes: admin login, read, delete, save limits (Step 4)
+- Step 5 cost per saved run (needs the history screen from Step 4)
+
+next:
+- Step 6 Netlify production deploy
+- After deploy: docs cleanup

@@ -5,8 +5,8 @@
 This file gives the coding agent full context for Joseph's Week 6 project before any code is written.
 
 - **The grill is done.** Joseph signed off on Oct 24 2026. Section 8 (D1 to D16) holds the settled decisions; do not reopen them without Joseph.
-- **Next steps, in order:** `to-spec` → `to-tickets` (GitHub issues, with Joseph's yes for the repo and the issues) → Ticket 0 loop rehearsal → real tickets, one at a time, using the two-agent loop in section 9.
-- Section 3 is verbatim course text and is the requirement. If anything conflicts with it, the Atlas text wins; ask Joseph.
+- **Week 6 steps (done, in order):** `to-spec` → `to-tickets` (GitHub issues, with Joseph's yes for the repo and the issues) → Ticket 0 loop rehearsal → real tickets, one at a time, using the two-agent loop in section 9.
+- The requirement is the Atlas course page. The project's written spec is `docs/spec.md` (issue #1). If anything conflicts with the course page, the course page wins; ask Joseph.
 - Timing: this is Week 6 material from last week. Joseph missed Friday (Demo Day). His demo date is unknown, so he is building the app at his own pace without deadline pressure. Do not rush scope to hit a date.
 - Week 7 (from Oct 30 2026): deadline Mon Nov 2, 10:00 AM CT. The upgrade plan is in §11 and docs/week7/; where §11 conflicts with earlier sections, §11 wins for the Week 7 build.
 - Related files: `GLOSSARY.md` (project terms), `.claude/agents/verifier.md` (the verifier subagent; checks 1 to 12, built from `VERIFIER_PROMPT.md`), `VERIFIER_PROMPT.md` (original source of the checks), `REVIEW.md` (verifier findings for the current ticket), `EVIDENCE.md` (Joseph's graded writing; agents only format it, per the §6 answer format rule), `context/cowrie_summarizer_ui_sample.html` (visual reference only). `context/` and `.scratch/` are git-ignored, so they stay local.
@@ -36,249 +36,10 @@ Joseph usually demos from his **work computer**. So:
 - **Local only (Mac):** Cowrie in Docker. Joseph SSHes into it to create sessions, then exports a cleaned sample `cowrie.json` (real IPs swapped for 203.0.113.x) and commits it.
 - **Netlify (public demo):** a Next.js app. The dashboard page is the front end; the Next.js route handler `app/api/summarize/route.ts` is the back end (Netlify runs it as a serverless function). The API key lives only in `.env.local` (local) and Netlify env vars (deployed). The route handler holds the system prompt, the 3 guardrails, the 4,000 char cap, the rate limit and the cost note.
 - The public site reads **sample logs only**. The honeypot is never exposed.
-- Caveat: an in memory 1 per minute rate limit is per function instance, so it is best effort on serverless. Discuss in the grill.
+- Caveat: an in memory 1 per minute rate limit is per function instance, so it is best effort on serverless (settled in D8).
 - Deploy to Netlify only after Joseph's explicit yes.
 
 Week 7 (Phase 2 Gate, Ship a Real AI App) extends this same Next.js Cowrie app with a database (history list, view, delete CRUD), a Netlify production deploy with the AI key and database URL as env vars, a few real users pasting sample logs for feedback, and one rehearsed live agent change in the demo.
-
-## 2. Source of truth
-
-Four Atlas (Next Chapter: AI Augmented Builder, "Powered by AtlasLearn") page screenshots supplied by Joseph on Oct 24 2026:
-
-| Screenshot | Atlas page | Week / Day |
-|---|---|---|
-| 01M5QNG53BGRPTRSZJ0X15MR64.png | Calling an AI API in Code | Week 6, Day 1 |
-| 01M5QNHNSHG9C5FS8M7VEXWXEA.png | Tokens, Cost & Rate Limits | Week 6, Day 2 |
-| 01M5QNM94NJ1YZQACP8DH3BQBV.png | Guardrails & Reliability (contains the Week 6 Project spec and rubric) | Week 6, Day 3 |
-| 01M5QNRQA5WJTT9QJYW5YRN6W7.png | Build Day: Add a Reliable AI Feature | Week 6, Day 4 |
-
-Day 5 (Demo Day: Show Your AI Feature) was not supplied.
-Also referenced in earlier work: `docs/week6-assignment.md` in `tx-license-navigator-next` on Joseph's Desktop. If it disagrees with the Atlas text below, ask Joseph which wins.
-
-Text below was transcribed by OCR and checked against the images. Obvious OCR glyph errors (for example "Al" for "AI") were corrected. Anything not legible is marked [unreadable].
-
-## 3. Spec and rubric (verbatim)
-
-### 3.1 This Week (Day 1 page)
-
-> Week 6 of 13 · Phase 2: AI Engineering · Ends in a project, no gate
->
-> You've used AI all program. This week you put it *inside* your own application, in code — and then deal with everything that makes that hard in the real world: it costs money, it has limits, and sometimes it returns something you didn't expect in front of a user.
->
-> | Day | What you do |
-> |---|---|
-> | 1 | Calling an AI API in code |
-> | 2 | Tokens, cost and rate limits |
-> | 3 | Guardrails and reliability |
-> | 4 | Build day — add a reliable AI feature |
-> | 5 | Demo day — show your AI feature |
->
-> Friday you demo an AI feature that holds up when things go wrong. That's the assignment — not that it works once in a demo, but that it handles a bad response, a rate limit, or a user who types something strange. Lane 3, control under constraints, is where that gets scored.
->
-> By Friday you should be able to: call an AI API from your own code, keep a key out of your repository and say why that matters, estimate what a feature costs to run, and put a guardrail around a response you can't fully predict.
-
-### 3.2 The Week 6 Project: "Add a Reliable AI Feature" (Day 3 page)
-
-> Read now; scope in today's lab; build Day 4; demo Day 5.
->
-> Add one AI-powered feature to your app (your Week 5 app, or a small fresh one) — summarize, categorize, draft, explain, generate a title, etc. Built with Codex, under control, and made reliable.
->
-> **Your spec (build exactly this):**
-> - The app calls an AI API in its back end (key kept secret) and shows the AI result in the UI.
-> - Has a system prompt in code (role + rules).
-> - Guardrails: at least one each for bad input, bad output, and failure (error/slow).
-> - Cost awareness: you can state roughly what a call costs + you capped input.
-> - Runs locally + on GitHub, no secrets committed.
->
-> **The constraints that prove control (Lane 3):**
-> - Review diffs; small commits; log prompts; catch one agent mistake.
-> - Explain the data flow including the AI call.
-> - Name your feature's failure mode + the guardrail you built for it (Week 2, engineered).
->
-> **How you'll be graded (weekly rubric):** Build skill (AI feature works + guardrails hold) · Control (reviewed diffs, small commits, explains the AI-inclusive data flow, cost awareness, caught a mistake) · Demo (show it working + explain the AI call + name failure mode & guardrail) · Meets-the-spec (AI call + system prompt + 3 guardrails + cost cap + on GitHub, no secrets).
->
-> **Demo Day 5:** show the AI feature + explain the AI call in your data flow + name the failure mode and the guardrail you built.
-
-(The separator between rubric lanes renders as a dot or dash in the image; exact glyph [unreadable].)
-
-### 3.3 Day 1: Calling an AI API in Code
-
-**Day Brief (verbatim)**
-> Everything so far has been you using AI. Today it flips: your app uses AI, on its own, as a built-in feature. A user pastes a messy note and your app hands back a clean summary — because behind the scenes, your code sent that note to an AI model and got the answer, automatically. No human in the loop.
->
-> That's what an AI API is: a way for your code to talk to an AI model, the same way Week 4's APIs let your code talk to other services. And here's the beautiful part — the prompting skills you built in Phase 1 (system prompts, roles, examples, reliability) now live in your code. Week 2's "system prompt" becomes a line in your app. You already know the hard part.
-
-**Concepts (headings verbatim, key lines quoted)**
-1. An AI API is just another API — for an AI model. "your app sends the model a request (your text + instructions) → the model sends back its generated response → your app uses it"
-2. What you send: the system prompt (in code) + the user's input. Example system prompt: "You are a concise summarizer. Summarize the user's note in 2 sentences. Plain language. Never add information that isn't in the note."
-   Example code shown on the page:
-   ```js
-   const response = await client.chat.completions.create({
-     model: "gpt-4o-mini",
-     messages: [
-       { role: "system", content: "You are a concise summarizer..." },
-       { role: "user",   content: userNote }
-     ]
-   });
-   ```
-   "The thing that surprises everyone: the API has no memory ... Every call is a blank slate."
-3. The API key — a secret that costs real money. "env file, git-ignored, never committed, never in the front end." "A key pushed to a public repo gets found by scrapers in minutes, not days." "tell your instructor immediately if you think a key has been exposed"
-4. Where the AI call lives: the back end. "user acts in browser → request to server → server calls the AI API (with your system prompt + the input) → AI responds → server sends it back → screen shows the result"
-5. You direct; you verify (the AI can still be wrong — Phase 1 never left). "direct the agent to add the AI call → review the diff → run it → check the AI's actual output → commit"
-
-**Guided Explorations (verbatim)**
-- Exploration 1 — Store Your API Key Safely (hint provided — new setup). Goal: take the key you were given and store it as a git-ignored secret. ... 1. Have the agent wire it up as a secret. Review where it put it — don't just accept that it did. 2. Verify it's git-ignored (not in your commits). Log how you confirmed.
-- Exploration 2 — Make Your App Call the AI (goal-only — you write the prompt). Goal: add a back-end route that sends some text to the AI API with a system prompt you wrote, and returns the AI's response; show the result in the app. 1. Write the agent prompt yourself. Include: what the feature does, your system prompt (role + rule), that the call goes in the back end, and that the result shows in the UI. 2. Review the diff — find the AI call, the system prompt, and where the result reaches the screen. 3. Run it. Check the AI's actual output — is it good? Commit. 4. Log your prompt + your system prompt + whether the AI's output was actually useful.
-- Exploration 3 — Change the Behavior via the System Prompt (goal-only). Goal: change how your AI feature behaves by editing only the system prompt (not the rest of the code). 1. Direct the agent (your prompt) to adjust the system prompt — change the tone, the length, or add a rule. 2. Run it again. Did the behavior change as expected? 3. Commit. Log the before/after behavior and what one system-prompt change did.
-
-**Checks for Understanding (questions only; Joseph answers these himself)**
-1. Explain what an 'AI API' is by connecting it to the regular APIs you learned in Week 4. What's the same, and what's different about what comes back?
-2. In an AI feature, where does the 'system prompt' live, and what does it do? Connect it to what you learned in Week 2.
-3. Trace the data flow for 'a user clicks Summarize and sees a summary,' including the AI call. Why does the AI call happen on the back end, not in the browser? Give TWO reasons.
-4. From Exploration 2: paste the system prompt you wrote. Was the AI's output actually good? How did you judge it (not just 'it returned something')?
-
-Status seen in the screenshot: Joseph saved answers to 1 to 4; his answer to 4 says he has not done Exploration 2 yet and will update it. The agent must not write or rewrite these answers.
-
-**Apply / Evidence (verbatim)**
-> Add to your Prompt Log:
-> 1. Your Exploration 2 agent prompt (that you wrote) + your feature's system prompt.
-> 2. Your Exploration 3 before/after: what one system-prompt change did.
-> 3. One idea for the AI feature you'll build for this week's project.
-
-**Resources:** OpenAI API Quickstart (confirm current URL + model/pricing at delivery); Anthropic (Claude) API docs; your Week 2 Prompt Recipe card.
-
-### 3.4 Day 2: Tokens, Cost & Rate Limits
-
-**Day Brief (verbatim)**
-> Yesterday's excitement — your app uses AI! — comes with a bill. Every AI call costs a little money, measured in tokens (remember tokens from Week 1? Now they have a price tag). And providers rate-limit you: you can only make so many calls so fast.
->
-> Why this matters for a builder who wants to get paid: a client will ask "what will this cost to run?" and "what happens when a hundred people use it at once?" Being able to answer makes you a real engineer, not a hobbyist. Today you learn to estimate cost and design for limits. It's not scary math — it's awareness that keeps your app affordable and reliable.
-
-**Concepts (headings verbatim, key lines quoted)**
-1. Tokens — the unit of AI (and now, of cost). Input tokens and output tokens both count. Rough estimate: "words ÷ 0.75 = tokens" (division sign partly [unreadable]; OCR shows "+").
-2. Cost — small per call, real at scale. Worked example: ~$0.15 per million input tokens and $0.60 per million output; 500 input + 150 output tokens ≈ "$0.00017 a call"; "200 users x 20 calls a day = $0.68 a day, about $20 a month"; 10,000 token documents make it "roughly $400 a month. Input size is the whole ballgame." History resent each call means "Cost grows with the square of the conversation length." Two levers: input size and model choice.
-3. Capping — protect yourself from runaway cost. "Limit input length (e.g., truncate or reject inputs over N characters)." "Set a max output length." "Watch your provider's usage dashboard and set spending limits there."
-4. Rate limits — you can only call so fast. "If your app calls too fast, you get an error (often '429 Too Many Requests'). Your app should handle that gracefully, not crash."
-5. You direct; you measure. "add the AI call → check the token usage in the response → estimate cost → cap input/output as needed → handle rate limits → commit"
-
-**Guided Explorations (verbatim)**
-- Exploration 1 — See Your Token Usage. Goal: find out how many tokens your AI feature actually uses per call. 1. Direct the agent (your prompt) to log or display the token usage from an AI call (the API returns it in the response). 2. Run your feature on a short input and a long input. Compare the token counts. 3. Log: short vs. long token counts. What drove the difference?
-- Exploration 2 — Estimate the Cost. Goal: put a rough dollar figure on your feature. 1. Find your model's price per million tokens (from the provider's pricing page — confirm current numbers). 2. Using your token counts from Exploration 1, estimate the cost of one call, and of 1,000 calls. 3. Log the estimate. Was it more or less than you expected?
-- Exploration 3 — Add a Cap and Handle Limits (goal-only). Goal: protect your feature from runaway cost and rate-limit crashes. 1. Direct the agent (your prompt) to: cap the input length (reject or truncate very long inputs) and handle a rate-limit/error gracefully with a friendly message. 2. Review the diffs — find the input cap and the error handling. 3. Test: try a huge input (does it cap?) and confirm errors don't crash the app. 4. Commit. Log what you capped and how errors are handled now.
-
-**Checks for Understanding (questions only; unanswered in screenshot)**
-1. Explain tokens as the unit of AI cost. Connect it back to what tokens meant in Week 1. Which costs you money: the input, the output, or both?
-2. From Exploration 2: roughly what does one call of your feature cost, and what would 1,000 calls cost? Name one thing you could change to lower it.
-3. A client asks, 'What happens when 100 people use this at the same time?' Explain rate limits in plain terms and one way your app can handle hitting one without crashing.
-4. From Exploration 3: what input cap did you add, and why? How does capping protect you (think about a leaked key or a giant input)?
-
-**Apply / Evidence (verbatim)**
-> Add to your Prompt Log:
-> 1. Your token counts (short vs. long input) and your cost estimate.
-> 2. Your Exploration 3 prompts + what you capped and how errors are handled.
-> 3. One cost/limit consideration for the feature you'll build this week.
-
-**Resources:** your AI provider's pricing page and rate-limits doc; a beginner "how AI API pricing works / what are tokens" explainer you find; your Week 1 notes on tokens. Page status: exit ticket and lesson completion both "Needed".
-
-### 3.5 Day 3: Guardrails & Reliability
-
-**Day Brief (verbatim)**
-> Here's the truth about shipping an AI feature: users will do things you didn't expect, and the AI will sometimes return something wrong, weird, or unsafe. That's not a maybe — it's a guarantee at any real scale. The difference between an amateur's demo and a professional's product is guardrails: the checks that keep the feature reliable and safe when reality gets messy.
-
-**Concepts (headings verbatim, key lines quoted)**
-1. Three places an AI feature fails: "Bad input — empty, gigantic, gibberish, or malicious text from the user." "Bad output — the AI returns something wrong, off-topic, unsafe, or not in the format you needed." "Failure/slowness — the AI API errors, times out, or hits a rate limit."
-2. Guard the input (before you call the AI). "never send junk to the AI. Validate first, call second."
-3. Guard the output (before you show the user). Check it's there and non-empty; check the format; "Constrain via the system prompt — the best output guardrail is a tight system prompt with clear rules and 'if you're unsure, say so'"; for sensitive uses, add a human check step.
-4. Guard against failure (when the AI breaks). try / catch example:
-   ```js
-   try {
-     const summary = await summarizeWithAI(note);
-     return summary;
-   } catch (error) {
-     console.error("AI call failed:", error);
-     return "Couldn't summarize that just now — try again in a moment.";
-   }
-   ```
-   "The two audiences rule. The error object is for you and belongs in the log. The message on screen is for the user." Timeouts: "Set a limit — a few seconds — after which you stop waiting and show the fallback." Fallbacks: "The best answer is usually the rest of the app still works."
-5. Govern — what you'd tell the person using it. Three questions: "Where did you use AI?" "What did you check?" "What would you tell a user?" "You'll be asked for them at the Phase 2 gate."
-6. The reliability mindset (and your project). "Your Week 6 project requires at least one guardrail of each kind, and your demo names your feature's failure mode and the guard you built." Loop: "direct the agent to add each guard → review the diff → test by trying to break it → commit"
-
-**Guided Explorations (verbatim)**
-- Exploration 1 — Break Your Own Feature. Goal: find where your AI feature fails. 1. Throw bad inputs at your feature: empty, enormous, gibberish, something off-topic. 2. Note what happens each time — crash? weird output? cost spike? nothing? 3. Log your feature's failure modes — this is your guardrail to-do list.
-- Exploration 2 — Guard the Input and Output (goal-only). 1. Direct the agent (your prompt) to validate the input (reject empty/too-long) and to check the AI's output before showing it (non-empty, roughly the right format). 2. Also tighten your system prompt with a clear rule and an "if unsure, say so." 3. Review the diffs. Re-run your break-it tests — do the guards hold now? 4. Commit. Log which guards you added and what they caught.
-- Exploration 3 — Guard Against Failure (goal-only). 1. Direct the agent to handle an API error/timeout gracefully with a friendly fallback message (build on yesterday's rate-limit handling). 2. Test it if you can (ask the agent how to simulate a failure). 3. Commit. Log: what does a user see now if the AI is down, instead of a crash?
-
-**Checks for Understanding (questions only; unanswered in screenshot)**
-1. Name the three places an AI feature can fail (input, output, failure) and give a realistic example of each for YOUR feature.
-2. From Exploration 1: what happened when you threw bad input at your feature? Which failure did you NOT expect?
-3. Why is the AI's output always a 'draft' you should guard before showing a user? Name two ways to guard output (one of them involving the system prompt). Connect to Phase 1.
-4. For your Week 6 project: state your feature's failure mode and the specific guardrail you'll build for it. Why does that guardrail matter for a real user?
-
-**Apply / Evidence (verbatim)**
-> Add to your Prompt Log:
-> 1. Your feature's failure modes from Exploration 1 (your break-it list).
-> 2. Your Exploration 2 + 3 prompts + which guardrails you added and what they caught.
-> 3. Your Week 6 project one-liner: your AI feature + its failure mode + your main guardrail.
-
-**Resources:** a beginner piece on making AI features reliable / input & output validation; your Week 2 responsible-use notes; "the weekly-project rubric — read the Control lane's new AI-feature requirements." Page status: exit ticket and completion "Needed".
-
-## 4. Build loop and control checklist (Day 4 page, verbatim)
-
-**Day Brief**
-> Today you build the thing this whole program is named for: an app with AI inside it — and not a fragile demo, a reliable one. Your feature calls an AI model, behaves consistently (system prompt), stays affordable (cost cap), and holds up when users get weird (guardrails).
->
-> The grade is control + reliability. A single AI feature that works, guards its failures, and that you can fully explain — including the AI call in your data flow — beats a flashier one that falls over. Remember the demo: show it working, explain the AI call, and name your failure mode + guardrail.
-
-**Your Build Plan** (Re-confirm before you start; blanks are for Joseph)
-> My AI feature: ____
-> Likely failure mode: ____
-> My system prompt (role + rule): ____
-> My three guardrails: input ____ / output ____ / failure ____
->
-> The spec:
-> 1. Calls an AI API on the back end (key secret) + shows the result.
-> 2. System prompt in code.
-> 3. One guardrail each for bad input, bad output, failure.
-> 4. Cost-aware (capped input; you know rough cost).
-> 5. On GitHub, no secrets committed.
-
-**The Build Loop (controlled loop, all day)**
-> ask → review the diff + accept → run → verify (incl. the AI output) → commit
-> 1. Ask for one piece at a time: the AI call → the system prompt → each guardrail → the cost cap.
-> 2. Review the diff — find the AI call, the system prompt, the guard. Explain before accepting.
-> 3. Verify — run it; judge the AI's actual output; try to break it and confirm the guard holds.
-> 4. Commit each working piece. Key stays out of every commit.
->
-> Get the AI call working and committed before adding guardrails. Then attack it and guard what breaks.
-
-**Control Checklist (keep this next to you)**
-> - [ ] I reviewed every diff before accepting it.
-> - [ ] I can explain my data flow including the AI call.
-> - [ ] The AI feature works and I judged the output quality (not just "it ran").
-> - [ ] I have a guardrail for bad input, bad output, and failure.
-> - [ ] I capped input and know roughly what a call costs.
-> - [ ] My API key is git-ignored — NOT in any commit.
-> - [ ] Small commits + Prompt Log current + one agent mistake caught.
-
-**When You Get Stuck**
-> 1. Read the error message.
-> 2. Paste the exact error to Codex; ask it to explain + fix; review the fix.
-> 3. Ask a peer.
-> 4. Ask the TA.
->
-> AI-API errors are common (auth, model id, rate limit). If the agent loops, git back to your last working commit and take a smaller step.
-
-**End-of-Day Self-Check (demo-ready?)**
-> - A working AI feature with a system prompt in code.
-> - One guardrail each for input, output, failure — tested by trying to break it.
-> - Cost cap in place + a rough cost figure in mind.
-> - Pushed to GitHub, key NOT committed.
-> - Data-flow (with the AI call) + failure-mode + guardrail ready to explain.
-> - A rough 2-minute demo in mind.
->
-> Not done? Note where you are. Day 5 opens with a short finish-up window.
-
-**Submission:** "Share a GitHub repo, a live URL, or a written response." Page shows "Nothing submitted for this day yet." Status: Exit ticket Done; Submit your work Needed; Mark lesson complete Needed.
 
 ## 5. Project: Cowrie honeypot + AI log summarizer
 
@@ -289,19 +50,20 @@ Status seen in the screenshot: Joseph saved answers to 1 to 4; his answer to 4 s
 - Image pulled: `cowrie/cowrie:latest` (ID 69e3317c6ecf).
 - Container `cowrie` running; log says "Ready to accept SSH connections" on port 2222 inside the container.
 - Cowrie 3.1.3, default config, JSON logging. Telnet is off.
-- Not yet confirmed: host port mapping, and where `cowrie.json` lands on the host.
+- Found in #9 (Oct 27 2026): the original `cowrie` container had no host port. Joseph created `cowrie-local` with `-p 127.0.0.1:2222:2222`. Logs live in an anonymous volume at `/cowrie/cowrie-git/var` (no Mac path; reach with `docker cp`).
 - A visual reference map exists at `~/Downloads/cowrie_honeypot_3d_v3.html` (not part of the graded code).
 
-**Not built yet** (see section 8 for how each is decided)
-- The summarizer route handler and the AI call (D1, D4, D12)
-- System prompt in code, written by Joseph (D12)
-- The 3 guardrails: input (D6), output (D5), failure with timeout (D7)
-- Input cap and cost note (D6, D13)
-- Rate limiting (D8)
-- Sample fixture (D3), mock mode (D9), dashboard UI (D2, D13)
-- Repo, `.gitignore`, `.env.local` handling, CI, GitHub push, Netlify deploy (D11)
+**Built** (see section 8 for how each is decided)
+- The summarizer route handler and the AI call (D1, D4, D12): #3, #5
+- System prompt in code, written by Joseph (D12): #5
+- The 3 guardrails: input (D6) #8, output (D5) #10, failure with timeout (D7) #10
+- Input cap and cost note (D6, D13): #8, #5
+- Rate limiting (D8): #12
+- Sample fixture (D3) #9, mock mode (D9) #2/#3/#10, dashboard UI (D2, D13) #3
+- Repo, `.gitignore`, `.env.local` handling, GitHub push (D11): #2; CI: Week 7 Step 2 (#15)
+- Not built yet: Netlify deploy (D11), Week 7 Step 6 (#13), next
 
-**Mapping to the spec:** each line of section 3.2 must be satisfied by the summarizer. The Prompt Log items in sections 3.3 to 3.5 are Joseph's evidence and are written by him.
+**Mapping to the spec:** each line of the Week 6 spec (`docs/spec.md`) must be satisfied by the summarizer. The Prompt Log items are Joseph's evidence and are written by him.
 
 ## 6. Hard rules for the agent
 
@@ -309,13 +71,13 @@ Status seen in the screenshot: Joseph saved answers to 1 to 4; his answer to 4 s
 - The AI call happens on the back end only (`app/api/summarize/route.ts`), never in a client component or browser code.
 - **Joseph is the only one who commits** (Week 6 rule; for the Week 7 sandbox build, §11 replaces this and the two bullets below). Agents never run `git add`, `git commit`, `git push`, `git reset`, or any other git command, except that the verifier subagent may run `git status` and `git diff` read-only. The verifier may also run the runtime checks R1 to R6 in `.claude/agents/verifier.md`: `npm run typecheck`, `npm run lint`, `npm test`, a dev server forced to `AI_MODE=mock` and bound to `127.0.0.1` on port 3100, `curl` to `http://localhost:3100` only, read-only `find` and `grep` inside the repo, and `lsof -ti tcp:3100` plus `kill` on only that process ID to stop its own server. Nothing is committed until R1 to R6 are green. The only subagent is `verifier` (`.claude/agents/verifier.md`); spawn no others.
 - Ask Joseph before any `git push`, deploy, Netlify link, GitHub repo or issue creation, or container start, stop, or restart.
-- Stay on `main`. No worktrees. If the agent loops, go back to the last good commit and take a smaller step.
+- Stay on `main` (Week 6; Week 7 sandbox: feature branches per §11). No worktrees. If the agent loops, go back to the last good commit and take a smaller step.
 - Cowrie stays local. Do not expose it to the internet or forward ports beyond localhost. The public site shows sanitized sample logs only.
 - `AI_MODE` defaults to `mock`. Switch to `live` only when a ticket needs a real AI call, and confirm the "Live AI" pill and nonzero token usage.
-- Joseph writes all graded reasoning: Checks for Understanding answers, Prompt Log, Build Plan, Explained (data flow, failure mode + guardrail, cost, Govern), Reflection, the system prompt wording, and the demo explanation. These live in `EVIDENCE.md` (and `lib/prompt.ts` for the prompt). Agents never write or reword them. In `EVIDENCE.md`, Joseph writes every answer; the agent only formats it, following the EVIDENCE.md answer format rule below. Agents may ask questions and explain concepts.
-- One ticket at a time, small commits, following the Build Loop in section 4 and the two-agent loop in section 9.
+- Joseph writes all graded reasoning: his answers in `EVIDENCE.md`, the Prompt Log (`PROMPT_LOG.md`), the system prompt wording, and the demo explanation. These live in `EVIDENCE.md`, `PROMPT_LOG.md` and `lib/prompt.ts` for the prompt. Agents never write or reword them. In `EVIDENCE.md`, Joseph writes every answer; the agent only formats it, following the EVIDENCE.md answer format rule below. Agents may ask questions and explain concepts.
+- One ticket at a time, small commits, following the two-agent loop in section 9.
 - Report every change in PIOF format (Purpose, Input, Output, Flow).
-- If anything here conflicts with Atlas text, the Atlas text wins; ask Joseph.
+- If anything here conflicts with the Atlas course page, the course page wins; ask Joseph.
 
 ### EVIDENCE.md answer format (standing rule, applies every time)
 
@@ -349,7 +111,7 @@ Joseph writes every answer. The agent only places and formats it. Apply this rul
 9. Demo steps and sample traffic → **D15, D3**.
 10. Joseph's open answers → **D16** (`EVIDENCE.md`).
 
-Facts still to look up inside tickets (not decisions): the Cowrie host port mapping and where `cowrie.json` lands on the Mac (fixture ticket; read-only `docker` commands only with Joseph's OK); the current Netlify function time limit (deploy ticket); the Anthropic Console menu names for workspace spend limits (setup ticket).
+Facts looked up inside tickets (not decisions): the Cowrie host port mapping and where `cowrie.json` lands on the Mac (found in #9; see section 5); the Anthropic Console menu names for workspace spend limits (found in #5: a "Spend limits" section on the workspace page). Still open: the current Netlify function time limit (deploy ticket).
 
 ## 8. Grill decisions (settled; do not reopen)
 
@@ -417,9 +179,9 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
   - Stay on `main`, no worktrees, small commits. If the agent loops, go back to the last good commit and take a smaller step. Ask Joseph before any push or deploy.
 - **D11 · Process, CI and deploy:**
   - Tickets are GitHub issues, created by `to-spec` then `to-tickets` after the grill (by hand if those skills don't load). Each issue is a thin end-to-end slice and lists its blockers. Creating the GitHub repo and creating the issues each need Joseph's yes.
-  - CI: **moved to Week 7** (Joseph, Oct 25 2026; was issue #4). Planned for Week 7: one GitHub Action on every push to `main` runs typecheck, lint, tests (fixture test, input guard, Zod schema, rate-limit key) and a gitleaks secret scan. The gitleaks scan returns with CI in Week 7.
+  - CI: **moved to Week 7** (Joseph, Oct 25 2026; was issue #4). Built in Week 7 Step 2 (#15, merged d5a4e9b): one GitHub Action on every push to `main` and every pull request runs typecheck, lint, tests (fixture test, input guard, Zod schema, rate-limit key) and a gitleaks 8.30.1 secret scan.
   - CD: Netlify auto-deploys from `main`, but the repo is linked to Netlify only in the deploy ticket, with Joseph's yes. After that, every push (which already needs his yes) is a deploy.
-  - Not used: branch protection, PR workflows, deploy previews.
+  - Not used: branch protection, deploy previews. Week 7 merges go through pull requests (#15, #16).
 - **D12 · System prompt:** Joseph writes the wording himself (Day 1 Exploration 2 evidence). In the AI-call ticket the builder stops, asks for it, and pastes it into `lib/prompt.ts` word for word without rewording. It must cover these 7 rules (topics, not wording):
   1. Role and audience (a security analyst / defender).
   2. Task: what happened, what it means, what to watch.
@@ -449,7 +211,7 @@ Facts still to look up inside tickets (not decisions): the Cowrie host port mapp
   - 1:45 Rate limit: Summarize again → 429 message, page still works.
   - 2:00 End.
   - Answers open question 9 (sample traffic comes from Joseph's local Cowrie sessions, per D3).
-- **D16 · Joseph's graded writing lives in `EVIDENCE.md`:** Checks for Understanding (Days 1 to 3), Prompt Log, the Day 4 Build Plan, Explained (data flow, failure mode + guardrail, cost, Govern), Reflection, and the agent mistake caught. Joseph writes every answer; the agent only formats it, following the EVIDENCE.md answer format rule in §6. Each heading notes which ticket makes its evidence available. Answers open question 10.
+- **D16 · Joseph's graded writing lives in `EVIDENCE.md`:** the course map (each course topic, what the build does for it, and where it lives) and Joseph's own answers under his headings. Joseph writes every answer; the agent only formats it, following the EVIDENCE.md answer format rule in §6. Unknowns in the map are marked TBD. Answers open question 10.
 
 ## 9. Two-agent build loop
 
@@ -488,8 +250,10 @@ The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.
 ## 10. Session state (BUILDER updates this before every clear and at every READY marker)
 
 - Numbering: from Oct 25 2026, tickets are referred to by GitHub issue number only (#2 to #14). The old local numbers 00 to 12 are retired; old ticket NN = issue #(NN+2). Ticket 0 in sections 1, 8 and 9 is issue #2.
-- Last ticket done: #5 C9 (summary format 6 sentences / 700 chars, prompt v2, cost note $0.0001–$0.0008, EVIDENCE.md answer format rule, Day 1 Q1–Q3), committed by Joseph as 97b276b and pushed (Oct 30 2026). #5 is complete; GitHub issue #5 is still open (closing it needs Joseph's yes).
-- Current ticket: Week 7 Step 3, Prisma + Neon schema (planned #16 part 1), inside the OpenShell sandbox on branch `feat/neon-schema` from c3f69b1 (Oct 31 2026). Not committed (Joseph: do not commit). Step 2 CI merged as d5a4e9b. `prisma generate` was blocked until Joseph added the binaries.prisma.sh rule; now generates Prisma Client 7.10.1 into `lib/generated/prisma` (git-ignored, ESLint-ignored; `postinstall: prisma generate` rebuilds it). New: `prisma/schema.prisma` (`SavedRun` → table `saved_runs`: id uuid, created_at, summary, threat_label enum, mode enum, input/output tokens, cost_usd Decimal(12,8), excerpt_length, excerpt_sha256 char(64); indexes on created_at and (excerpt_sha256, created_at) for Step 4; no migration yet, Joseph creates and runs it on his Mac), `prisma.config.ts` (migrations use `DATABASE_URL_UNPOOLED`, loads `.env.local` only if present), `lib/redactIps.ts` (IPv6 then IPv4 → "attacker IP", each candidate checked with `node:net`; times, versions, 1.2.3.4.5 and 999.1.1.1 left alone), `lib/runStore.ts` (`SavedRunInput`, `buildSavedRun` redacts the summary, hashes the excerpt with SHA-256, keeps only its length; `setRunStoreForTests` injects a fake store; otherwise `lib/prismaRunStore.ts` is loaded on first use; `saveRunSafely` races a 3,000 ms timeout and logs `history_saved` or `history_save_failed` {reason, kind = error code or name only, never the message}), `lib/prismaRunStore.ts` (PrismaClient + `PrismaNeon` on pooled `DATABASE_URL`, created lazily; missing URL throws inside the safe save), tests `lib/redactIps.test.ts`, `lib/runStore.test.ts`, `app/api/summarize/route.save.test.ts` (live SDK call mocked; saves one redacted row, not on output-guard rejection, not in mock mode, summary still returned when the store fails). Changed: `app/api/summarize/route.ts` (after the output guard, live only: `await saveRunSafely(buildSavedRun(...))`; screen summary unredacted), `package.json` / `package-lock.json` (prisma, @prisma/client, @prisma/adapter-neon 7.10.1; postinstall), `.gitignore`, `eslint.config.mjs`, `.env.example` (empty DB URL lines), `CLAUDE.md`, `.claude/progress.txt`, `REVIEW.md` (verifier). Not in Step 3 (Step 4): daily cap, 24 h duplicate skip, 30 day delete, history pages. Builder: typecheck, lint, 178 tests and `npm run build` (mock, dummy DB URLs → `build.log`) pass. Not proven here: a real Neon write (the builder never connects; Joseph checks after his migration). Oct 31 2026: `prisma generate` ran with no denied host; verifier 33 PASS / 2 FAIL / 2 N/A (R6: no `lsof` in the sandbox, server stopped by the builder by PID, port 3100 free; A4: `redactIps` misses `IP:2001:db8::1`, `2001:db8::1:` and `...203.0.113.5`, reproduced by the builder). Joseph: R6 skipped (sandbox tool gap; lsof is a later step; verifier.md and Dockerfile unchanged); A4 approved. Fix pass: `redactIps` IPv6 tries the whole run, then sets aside as few edge colons/dots as possible (keeps `::` in `::1.` and `fe80::.`); IPv4 lookbehind is now `(?<!\d|\d\.)` so leading dots don't block it while 1.2.3.4.5 stays untouched; 4 new tests; `lib/runStore.test.ts` fake `postgres://` URL replaced with plain text (gitleaks advisory). typecheck, lint, 182 tests and mock build pass. Verifier re-run requested by Joseph: 33 PASS / 2 FAIL (R6 lsof still missing, server stopped by the builder by PID, port 3100 free; A4 remaining: IPv6 with 7 or 8 groups after a colon whose word ends in a hex letter, e.g. `Code:2001:db8:0:0:0:0:0:1`, is not redacted, reproduced by the builder). Joseph approved the A4 remaining case, R6 stays skipped: `redactIps` now also tries starting just after each colon in the run (`startOffsets`), earliest first; 1 new test (`Code:2001:db8:0:0:0:0:0:1`). Over-redaction advisory (`ID:2001:db8::1` → `Iattacker IP`, safe direction) not approved, left as is. typecheck, lint, 183 tests and mock build pass. Not re-verified (fix touched only the approved item). Ready to commit (Joseph commits).
+- Last ticket done: Week 7 Step 3 (#16 part 1) plus migration b95cc35 (see below). Last Week 6 ticket: #5 C9 (summary format 6 sentences / 700 chars, prompt v2, cost note $0.0001–$0.0008, EVIDENCE.md answer format rule, Day 1 Q1–Q3), committed by Joseph as 97b276b and pushed (Oct 30 2026). #5 is complete; GitHub issue #5 is still open (closing it needs Joseph's yes).
+- Current ticket: Week 7 Step 6, Netlify production deploy (#13), only after Joseph says "go deploy"; then docs cleanup. Skipped for now: Step 4 history CRUD + admin login (#16 part 2: admin login, read, delete, save limits) and Step 5 cost per saved run (#16 part 3).
+- Week 7 after Step 3: migration `init_saved_runs` committed as b95cc35, applied on the Neon dev branch, `saved_runs` confirmed; `lsof` added to the sandbox image (2ae7b32), fixing the R6 gap; `os-agent:local` rebuilt; `build` sandbox recreated with lsof and git. Policy commits: b78797c (platform.claude.com), c3f69b1 and 08cea76 (npm_registry: rest, encoded slash, access full), 024f235 (prisma_engines).
+- Step 3 notes, Prisma + Neon schema (#16 part 1), built inside the OpenShell sandbox on branch `feat/neon-schema` from c3f69b1 (Oct 31 2026); committed as e12c4af, PR #16 merged as bc0c7bc. Step 2 CI (#15) committed as b3ea053, PR #15 merged as d5a4e9b. `prisma generate` was blocked until Joseph added the binaries.prisma.sh rule; now generates Prisma Client 7.10.1 into `lib/generated/prisma` (git-ignored, ESLint-ignored; `postinstall: prisma generate` rebuilds it). New: `prisma/schema.prisma` (`SavedRun` → table `saved_runs`: id uuid, created_at, summary, threat_label enum, mode enum, input/output tokens, cost_usd Decimal(12,8), excerpt_length, excerpt_sha256 char(64); indexes on created_at and (excerpt_sha256, created_at) for Step 4; no migration yet, Joseph creates and runs it on his Mac), `prisma.config.ts` (migrations use `DATABASE_URL_UNPOOLED`, loads `.env.local` only if present), `lib/redactIps.ts` (IPv6 then IPv4 → "attacker IP", each candidate checked with `node:net`; times, versions, 1.2.3.4.5 and 999.1.1.1 left alone), `lib/runStore.ts` (`SavedRunInput`, `buildSavedRun` redacts the summary, hashes the excerpt with SHA-256, keeps only its length; `setRunStoreForTests` injects a fake store; otherwise `lib/prismaRunStore.ts` is loaded on first use; `saveRunSafely` races a 3,000 ms timeout and logs `history_saved` or `history_save_failed` {reason, kind = error code or name only, never the message}), `lib/prismaRunStore.ts` (PrismaClient + `PrismaNeon` on pooled `DATABASE_URL`, created lazily; missing URL throws inside the safe save), tests `lib/redactIps.test.ts`, `lib/runStore.test.ts`, `app/api/summarize/route.save.test.ts` (live SDK call mocked; saves one redacted row, not on output-guard rejection, not in mock mode, summary still returned when the store fails). Changed: `app/api/summarize/route.ts` (after the output guard, live only: `await saveRunSafely(buildSavedRun(...))`; screen summary unredacted), `package.json` / `package-lock.json` (prisma, @prisma/client, @prisma/adapter-neon 7.10.1; postinstall), `.gitignore`, `eslint.config.mjs`, `.env.example` (empty DB URL lines), `CLAUDE.md`, `.claude/progress.txt`, `REVIEW.md` (verifier). Not in Step 3 (Step 4): daily cap, 24 h duplicate skip, 30 day delete, history pages. Builder: typecheck, lint, 178 tests and `npm run build` (mock, dummy DB URLs → `build.log`) pass. Not proven here: a real Neon write (the builder never connects; Joseph checks after his migration). Oct 31 2026: `prisma generate` ran with no denied host; verifier 33 PASS / 2 FAIL / 2 N/A (R6: no `lsof` in the sandbox, server stopped by the builder by PID, port 3100 free; A4: `redactIps` misses `IP:2001:db8::1`, `2001:db8::1:` and `...203.0.113.5`, reproduced by the builder). Joseph: R6 skipped (sandbox tool gap; lsof is a later step; verifier.md and Dockerfile unchanged); A4 approved. Fix pass: `redactIps` IPv6 tries the whole run, then sets aside as few edge colons/dots as possible (keeps `::` in `::1.` and `fe80::.`); IPv4 lookbehind is now `(?<!\d|\d\.)` so leading dots don't block it while 1.2.3.4.5 stays untouched; 4 new tests; `lib/runStore.test.ts` fake `postgres://` URL replaced with plain text (gitleaks advisory). typecheck, lint, 182 tests and mock build pass. Verifier re-run requested by Joseph: 33 PASS / 2 FAIL (R6 lsof still missing, server stopped by the builder by PID, port 3100 free; A4 remaining: IPv6 with 7 or 8 groups after a colon whose word ends in a hex letter, e.g. `Code:2001:db8:0:0:0:0:0:1`, is not redacted, reproduced by the builder). Joseph approved the A4 remaining case, R6 stays skipped: `redactIps` now also tries starting just after each colon in the run (`startOffsets`), earliest first; 1 new test (`Code:2001:db8:0:0:0:0:0:1`). Over-redaction advisory (`ID:2001:db8::1` → `Iattacker IP`, safe direction) not approved, left as is. typecheck, lint, 183 tests and mock build pass. Not re-verified (fix touched only the approved item). Committed by Joseph as e12c4af.
 - OpenShell (Oct 30 2026): 0.1.6 installed and proven on Joseph's Mac by the builder (fake key; tests 1a, 1b, 1c, 2, 3, Claude Code routing, file writes, upload/download, npm and fonts rules) and by Joseph (real-key check, "OK"). Gateway left installed with bridge networking and telemetry off; profile claude-code imported; image os-agent:local built; Joseph's real-key provider kept until after Monday.
 - #5 C9 history (started Oct 27 2026, done Oct 30 2026 as 97b276b): Joseph's live runs with the rate limit and Zod check, then his prompt-only change if needed (builder stops before any wording). Builder checked `.env.local` by count only: API key line present, `AI_MODE=live` not set; Joseph switches it.
 - #12 follow-up (Joseph's revision of advisory 1, Oct 27 2026), committed by Joseph as bf39d95 and pushed: new browser-safe `lib/retryAfter.ts` (`readRetryAfter(body, header)`: the body's `retryAfterSeconds` if a positive whole number, else the `Retry-After` header in whole seconds, else 60 s; always capped at 300 s; message is `rateLimitMessage(seconds)`, the route's own text). `rateLimitMessage` moved there from `lib/rateLimit.ts` (which re-exports it) because `rateLimit.ts` imports `node:crypto`. Dashboard 429 branch reads the body without throwing and calls `readRetryAfter`; same amber alert and timer. `lib/retryAfter.test.ts`: 19 cases (well-formed body, 7 bad bodies → header, 6 → 60 s default, 3 → 300 s cap, exactly 300 kept, message text). typecheck, lint and 161 tests pass. Changed: `app/_components/Dashboard.tsx`, `lib/rateLimit.ts`, `CLAUDE.md`, `.claude/progress.txt`; new: `lib/retryAfter.ts`, `lib/retryAfter.test.ts`. Verifier re-run requested by Joseph, including the 429 → `readRetryAfter` → amber alert path (the verifier has no browser, so it checks by curl and code trace only). Verifier: 40 PASS / 0 FAIL / 1 N/A, R1 to R6 green; a second POST got 429 with `Retry-After: 57` and matching body; Dashboard path traced in code; cap applies to every source. Seen on screen by Joseph (Oct 27 2026): amber alert, disabled Summarize, countdown, and release all confirmed. REVIEW.md row X3 quotes the alert's `className` with garbled braces (verifier's typo; finding and line numbers correct).
@@ -504,14 +268,14 @@ The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.
 - Spec: `docs/spec.md`, published as issue #1 with the `ready-for-agent` label (Oct 25 2026). Repo: https://github.com/ClayClimate-AI/honeypot-log-analyzer.
 - Tickets: GitHub issues #2 to #14, mirrored locally in `.scratch/cowrie-summarizer/issues/` with files named by issue number (`NN-slug.md`). Each local file is the source for its issue's title and body.
 - Lean plan (Oct 25 2026, Joseph): #2 closed as done (7f2f9e3). #4 CI closed, moved to Week 7. #6 (cost notes) and #7 (system prompt change) merged into #5 and closed. #11 (failure guard) merged into #10 and closed. #9 keeps Docker for an authentic Cowrie sample, with every `docker` command only after Joseph's OK. #13 deploy is optional and minimal (Netlify link plus env vars), decided after #12; the curl spoof proof and the demo clip moved to Week 7. Follow-up the same day: D11 CI and the D15 green CI backstop marked as moved to Week 7; "gitleaks green" removed from #14 (gitleaks returns with CI in Week 7); D12 prompt change is the final step of #5, prompt-only diff, builder stops before any wording; the README data-flow diagram moved from #13 to #14.
-- Open issues in order: Week 7 path in §11 (planned #15 → #16 → #13 → #19; #18 HITL; #14 last). #5 work is done; its GitHub issue is still open until Joseph closes it.
-- Next ticket: Week 7 Step 4, history CRUD + admin login (planned #16 part 2), branch `feat/history-auth`, after Joseph merges `feat/neon-schema`, runs the migration and CI is green
+- Open issues in order: Week 7 path in §11 (#15 done → #16 part 1 done, parts 2 and 3 skipped for now → #13 next → #19; #18 HITL; #14 last). #5 work is done; its GitHub issue is still open until Joseph closes it.
+- Next ticket: Week 7 Step 6, Netlify production deploy (#13); after deploy, docs cleanup
 - C9 progress (Oct 28 2026): live sample runs failed `summary: too_big` with v1 (measured by a temporary log, since removed: 677 chars, 4 sentences). Joseph's prompt-only edits to the `format` part of `lib/prompt.ts` (his wording, pasted word for word): keep the JSON line; "Write the summary in 3 short sentences: what happened, what it means for a defender, and what to watch next. Write exactly 3 sentences, each under 20 words. Never over 600 characters. Do not list every command, IP, or login attempt; group repeats, for example 'several failed root logins, then a success'. Plain text only, no markdown or HTML." Live result: passes Zod (3 sentences, ~430 chars), label high (injection asked for low), 1,192 in / 1,216 out, $0.000727. Open for Joseph: summary doesn't name the injection attempt; "the downloaded script" overreach; thinking tokens (~800+ hidden output); cost note range below measured; `// v1` comment. Verifier run requested for check 4. (Superseded Oct 30 2026: the format is now 6 sentences and 700 characters; see "C9 latest".)
 - Changed files in #5 C9 (all committed in 97b276b): `CLAUDE.md` (Session state; plus the EVIDENCE.md formatting rule in §6, and §1, §6 and D16 wording updated to match, Oct 30 2026), `.claude/progress.txt`, `lib/prompt.ts` (format part only; Joseph's change to "6 short sentences" and "exactly 6 sentences", Oct 30 2026), `lib/outputGuard.ts` (`MAX_SUMMARY_SENTENCES` 3 → 6, Joseph's line; `MAX_SUMMARY_CHARS` 600 → 700, Joseph's call), `lib/outputGuard.test.ts` (reject cases now 7 sentences and 701 chars; new 6-sentence accept case), `lib/liveAiClient.ts` (comment only, 700), `app/_components/Dashboard.tsx` (cost note $0.0001–$0.0008), `lib/cost.test.ts` (comment only), prompt "Never over 700 characters" (Joseph's number), D5, D12 rule 7 and `docs/spec.md` story 6 + output guard line updated to 6 sentences / 700 chars, `EVIDENCE.md` (line 3, plus Joseph's Day 1 Q1, Q2 and Q3 answers with their call graphs, formatted only, saved on his yes), `docs/spec.md` (line 257, EVIDENCE.md rule)
 - C9 latest (Oct 30 2026): another live sample run failed `summary: too_many_sentences`. Not yet known whether the model wrote 4 sentences or `countSentences` split one; a temporary count-only log is proposed, waiting on Joseph. Then Joseph raised the limits to 6 sentences / 700 chars (prompt, Zod, tests, D5, D12, spec). Verifier (Oct 30 2026): 37 PASS / 1 FAIL, R1 to R6 green; T16 FAIL: the diff isn't prompt-only (Exploration 3 evidence); fix is a two-part commit or skip. Advisories: "exactly 6" sits at the 6 max and ~650–750 chars vs 700; `// v1` comment; EVIDENCE Q3 graph says "max 3 sentences"; cost note below the measured $0.000727; one older §10 line quotes 3/600. Joseph (Oct 30 2026): T16 skipped (one combined commit this time); advisories 1–5 approved. Applied: `// v2` comment in `lib/prompt.ts` (comment only); EVIDENCE Q3 graph label → "max 6 sentences"; cost note $0.0001–$0.0008 in `Dashboard.tsx`, D13, spec story 48 and the `lib/cost.test.ts` comment; older §10 C9 line marked superseded. Advisory 1 (prompt at the limit): Joseph keeps the prompt and the 700 cap as is. Joseph's browser check (Oct 30 2026): server checks pass on screen. 162 tests, typecheck and lint pass. Not re-verified yet.
 - New (untracked) files in #5 C9: none
-- Uncommitted now (Oct 31 2026, branch `feat/neon-schema`): see Current ticket for the full list of new and changed files.
-- Git: commits so far 7f2f9e3 (#2), 3cf3be7 (verifier subagent), fd81399 (#3), 7aa9122 (#5 code), 5914b7d (#5 live runs + C9 deferral), 65216c5 (#8), 809e57b (#9), acea1da (#9 follow-up, cost note range), b2c7a81 (#10), 7290f90 (#12), bf39d95 (#12 follow-up), 47c52eb (Session state docs) and 97b276b (#5 C9); all pushed. The verifier reads `git diff` for the changed files and reads the new files in full.
+- Uncommitted now (Nov 1 2026): `CLAUDE.md` and `.claude/progress.txt` (docs only).
+- Git: commits so far 7f2f9e3 (#2), 3cf3be7 (verifier subagent), fd81399 (#3), 7aa9122 (#5 code), 5914b7d (#5 live runs + C9 deferral), 65216c5 (#8), 809e57b (#9), acea1da (#9 follow-up, cost note range), b2c7a81 (#10), 7290f90 (#12), bf39d95 (#12 follow-up), 47c52eb (Session state docs), 97b276b (#5 C9), 054330d (Session state docs); Week 7: 56133d5 (Step 0), b78797c (policy), b3ea053 + merge d5a4e9b (Step 2, PR #15), c3f69b1 and 08cea76 (policy), e12c4af + merge bc0c7bc (Step 3, PR #16), 024f235 (policy), 2ae7b32 (lsof), b95cc35 (migration); all pushed. The verifier reads `git diff` for the changed files and reads the new files in full.
 - Open decisions: none
 - Follow-up after #9 (Joseph, Oct 27 2026), committed by Joseph; changed files `app/_components/Dashboard.tsx`, `lib/cost.test.ts` (comment only), `docs/spec.md`, `CLAUDE.md`, `.claude/progress.txt`. GitHub issue #1 still shows the old wording (not edited). Change the input-card cost note in `app/_components/Dashboard.tsx` to "Cap: 4,000 characters · about $0.0001–$0.0003 per call (Claude Haiku 5.5) · measured cost shown after each call" (option A). Same wording in D13 and `docs/spec.md` story 48; update the comment on the `lib/cost.test.ts` D4 estimate test (its math stays). Reason: measured runs were $0.000125 and $0.0001415 (2-line excerpt, 520 in); $0.0003 is the D4 near-cap estimate.
 - Known gaps: Netlify function time limit and Anthropic Console menu names to confirm in their tickets
@@ -520,10 +284,10 @@ The BUILDER runs in Joseph's Claude Code session. The VERIFIER is a subagent (`.
 
 Source of truth: `docs/week7/SPEC.md` (plan, order, acceptance), `docs/week7/HANDOFF.md` (sandbox session), `docs/week7/OPENSHELL_MAC_GUIDE.md` (proven setup), `docs/week7/adr/` (D17 to D20, each signed by Joseph; RCA sections are his).
 
-- **One upgrade, in order:** CI → Prisma/Neon → history + admin login → cost per saved run → deploy ("go deploy") → README. One builder, no worktrees, no parallel agents.
+- **One upgrade, in order:** CI → Prisma/Neon → history + admin login → cost per saved run → deploy ("go deploy") → README. One builder, no worktrees, no parallel agents. Status: CI and Prisma/Neon done; history + admin login and cost per saved run skipped for now; deploy is next.
 - **Where the builder runs:** inside an OpenShell sandbox on Joseph's Mac (D17), policy `lab/openshell/policy.yaml` (deny by default; named rules only). A newly denied host is reported and stops the step; Joseph decides on a new rule.
 - **Git (D20), replacing the Week 6 git bullets in §6 for the sandbox build:** the builder may create the step's feature branch and commit to it inside the sandbox. It never pushes, merges, rebases, force pushes, resets, or deletes branches. Joseph downloads the repo from the sandbox, reviews, pushes the branch from his Mac, checks CI and merges. Outside the sandbox (this kind of session), the Week 6 rules still apply: Joseph commits.
-- **Database:** the builder never connects to the real Neon database; tests use an injected fake store. Joseph creates the Neon project, sets env vars and runs migrations on his Mac.
+- **Database:** the builder never connects to the real Neon database; tests use an injected fake store. Joseph creates the Neon project, sets env vars and runs migrations on his Mac (`init_saved_runs` applied on the dev branch, b95cc35).
 - **Secrets:** the Anthropic key exists only in the OpenShell provider (placeholder inside), `.env.local` and Netlify env. `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `ADMIN_PASSWORD` and `SESSION_SECRET` live only in `.env.local` and Netlify env. Never stored: the raw excerpt.
-- **Verification:** the builder runs `npm run build` (mock env, dummy DB URLs) and saves it to `build.log` (git-ignored); the verifier runs R1 to R6, reads `build.log`, never runs build, and is still the only subagent.
+- **Verification:** the builder runs `npm run build` (mock env, dummy DB URLs) and saves it to `build.log` (git-ignored); the verifier runs R1 to R6 (the sandbox image has `lsof` since 2ae7b32), reads `build.log`, never runs build, and is still the only subagent.
 - **Still in force:** `AI_MODE` defaults to mock; Cowrie stays local (D19); the EVIDENCE.md answer format rule (§6); Joseph writes all graded reasoning; ask Joseph before any deploy, Netlify link, GitHub issue creation, or container start or stop outside the sandbox commands in the guide.
