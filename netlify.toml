@@ -1,0 +1,9 @@
+# Week 7 Step 6 (#13): Netlify production deploy.
+# The Next.js runtime (@netlify/plugin-nextjs) is detected automatically and
+# not pinned, per Netlify's docs, so it isn't listed here.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
