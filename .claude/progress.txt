@@ -1,7 +1,7 @@
 stage: W7
-step: 6 (5 of 6)
-issue: #13
-title: Netlify production deploy
+step: 7 (6 of 6)
+issue: #19
+title: README
 
 done:
 - Step 2 CI (PR #15, merged d5a4e9b)
@@ -9,11 +9,13 @@ done:
 - Migration init_saved_runs (b95cc35); saved_runs live on the Neon dev branch
 - lsof added to the sandbox image (2ae7b32)
 - os-agent:local rebuilt; build sandbox recreated with lsof and git
+- Step 6 Netlify production deploy (#13, 344fea2): live site, Neon write, D8 header proof
+- PROMPT_LOG.md (8cfa036; Entry 19 filled)
 
 skipped for now:
 - Phase A2 CRUD routes: admin login, read, delete, save limits (Step 4)
 - Step 5 cost per saved run (needs the history screen from Step 4)
 
 next:
-- Step 6 Netlify production deploy
-- After deploy: docs cleanup
+- Step 7 README (#19)
+- #18 HITL, then #14 final review

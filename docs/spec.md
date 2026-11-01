@@ -2,6 +2,8 @@
 
 > Source: the grill signed off Oct 24 2026 (CLAUDE.md §8, D1 to D16). Written locally first; to be published as GitHub issue #1 in https://github.com/ClayClimate-AI/honeypot-log-analyzer with the `ready-for-agent` label once Joseph says yes. Terms follow GLOSSARY.md.
 
+> **Week 7 note:** this is the Week 6 spec. Week 7 added a Neon database, CI, pull requests and the Netlify deploy, so lines about "no database", PR workflows and facts still to confirm are out of date. See `docs/week7/SPEC.md` and CLAUDE.md §11; where they differ, those win.
+
 ## Problem Statement
 
 A security analyst looking at honeypot output sees a wall of JSON events: login attempts, recon commands, payload downloads, disconnects. Reading a whole session by hand to answer "what happened, what does it mean, what should I watch for?" is slow, and it's harder still for someone learning the security side, like Joseph coming from building automation and HVAC controls.
@@ -187,7 +189,7 @@ A one-request-per-minute limit per client protects the key. The public site only
 **API contract** (the summarize route)
 - Request: `{ excerpt: string }`.
 - Success 200: `{ summary, threatLabel, mode: "mock" | "live", usage: { inputTokens, outputTokens }, costUsd }`.
-- Errors return `{ error: { code, message }, mode }`, where `message` is the exact user-facing text from D6/D7/D8:
+- Errors return `{ error }`, where `error` is the exact user-facing text from D6/D7/D8. The body carries no code and no mode; the failure code goes only to the server log. A 429 from our own rate limit also carries `retryAfterSeconds` and a `Retry-After` header:
   - 400 for input-guard rejections
   - 429 with `retryAfterSeconds` for our own rate limit
   - 502 for `ai_bad_output`

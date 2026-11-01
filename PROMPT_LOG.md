@@ -50,8 +50,8 @@
   <tr><td><b>Decision</b></td><td>n/a (setup, no code)</td></tr>
   <tr><td><b>Verified</b></td><td>
     <ul>
-      <li>TBD · Docker Desktop 4.96.3 on Apple Silicon, engine running</li>
-      <li>TBD · container log says "Ready to accept SSH connections" on port 2222 inside the container</li>
+      <li>Oct 24, by 14:13 CT · Docker Desktop 4.96.3 on Apple Silicon, engine running</li>
+      <li>Oct 24, by 14:13 CT · container log says "Ready to accept SSH connections" on port 2222 inside the container</li>
     </ul>
   </td></tr>
   <tr><td><b>Commit</b></td><td>none</td></tr>
@@ -340,7 +340,7 @@ flowchart TD
   L --> X[Anthropic API<br/>messages call]:::run
   R --> C[lib/cost.ts<br/>usage times dated prices]:::server
   R --> D
-  N[@anthropic-ai/sdk<br/>^1.3.0]:::deps --> L
+  N["@anthropic-ai/sdk<br/>^1.3.0"]:::deps --> L
   classDef ui fill:#15803d,color:#fff,stroke:#86efac
   classDef server fill:#b91c1c,color:#fff,stroke:#fca5a5
   classDef run fill:#334155,color:#fff,stroke:#94a3b8
@@ -983,7 +983,7 @@ flowchart TD
       <li>TBD · verifier: 32 PASS / 2 FAIL / 3 N/A</li>
       <li>TBD · R6 FAIL: <code>lsof: command not found</code> (exit 127); the server was stopped from outside the verifier and port 3100 was free afterward (Entry 17)</li>
       <li>TBD · G2 FAIL: the builder did not update Session state for Step 2</li>
-      <li>TBD · CI run result on GitHub</li>
+      <li>Oct 31, 11:33 CT · CI on PR #15 (<code>b3ea053</code>) passed; merge run (<code>d5a4e9b</code>) 11:36 CT passed</li>
     </ul>
   </td></tr>
   <tr><td><b>Commit</b></td><td>
@@ -1094,7 +1094,7 @@ flowchart TD
   S --> P[lib/prismaRunStore.ts<br/>PrismaClient and PrismaNeon]:::db
   P --> N[Neon Postgres<br/>saved_runs table]:::run
   M[prisma/schema.prisma<br/>SavedRun model]:::db --> P
-  K[@prisma/client 7.10.1<br/>postinstall prisma generate]:::deps --> P
+  K["@prisma/client 7.10.1<br/>postinstall prisma generate"]:::deps --> P
   Y[policy.yaml<br/>npm_registry and prisma_engines rules]:::tool --> K
   classDef server fill:#b91c1c,color:#fff,stroke:#fca5a5
   classDef db fill:#111827,color:#fff,stroke:#9ca3af
@@ -1188,7 +1188,8 @@ flowchart TD
   <tr><td><b>Decision</b></td><td>accepted</td></tr>
   <tr><td><b>Verified</b></td><td>
     <ul>
-      <li>TBD · migration applied on the Neon dev branch; <code>saved_runs</code> confirmed</li>
+      <li>Nov 1, 10:23 CT · migration committed (<code>b95cc35</code>); applied on the Neon dev branch, <code>saved_runs</code> confirmed</li>
+      <li>Nov 1, 10:55 CT · first live row saved to <code>saved_runs</code></li>
     </ul>
   </td></tr>
   <tr><td><b>Commit</b></td><td>
@@ -1230,43 +1231,62 @@ flowchart TD
 
 ## Entry 19 · #13 Netlify production deploy
 
-*TBD (not done yet)*
+*Nov 1 · TBD to 13:58 CT (commit); deploy 14:11 to 14:12 CT*
 
 <table>
   <tr><th align="left">Field</th><th align="left">Details</th></tr>
-  <tr><td><b>Tool</b></td><td>TBD</td></tr>
-  <tr><td><b>Asked</b></td><td>TBD (starts only after Joseph says "go deploy")</td></tr>
+  <tr><td><b>Tool</b></td><td>Claude Code · model TBD</td></tr>
+  <tr><td><b>Asked</b></td><td>Prepare the repo for a Netlify deploy (#13): build runs <code>prisma generate</code>, dev bound to 127.0.0.1, <code>netlify.toml</code>, env reads from env only, a local build, and the env var names. Don't commit or read <code>.env.local</code></td></tr>
   <tr><td><b>Context</b></td><td>
     <ul>
       <li><code>CLAUDE.md</code> (D7, D8, D11, §11)</li>
       <li>issue #13</li>
     </ul>
   </td></tr>
-  <tr><td><b>Changed</b></td><td>TBD</td></tr>
-  <tr><td><b>Decision</b></td><td>TBD</td></tr>
+  <tr><td><b>Changed</b></td><td>
+    1 new file, 1 edited
+    <ul>
+      <li>🟪 <code>netlify.toml</code> (new) · build <code>npm run build</code>, publish <code>.next</code>, <code>NODE_VERSION</code> 22; Next.js runtime auto-detected, not pinned</li>
+      <li>🟨 <code>package.json</code> (modified) · <code>build</code>: <code>prisma generate &amp;&amp; next build</code>; <code>dev</code>: <code>next dev -H 127.0.0.1</code></li>
+    </ul>
+    Netlify env (Builds and Functions scope): <code>ANTHROPIC_API_KEY</code>, <code>DATABASE_URL</code> (secret), <code>AI_MODE</code> = live
+  </td></tr>
+  <tr><td><b>Decision</b></td><td>accepted</td></tr>
   <tr><td><b>Verified</b></td><td>
     <ul>
-      <li>TBD · planned (D8): two <code>curl</code> requests within a minute, each with a different forged <code>x-forwarded-for</code> and <code>x-nf-client-connection-ip</code>; the second must get 429</li>
-      <li>TBD · planned (D8): the deployed route logs <code>ipHeaderPresent</code></li>
-      <li>TBD · planned: the current Netlify function time limit</li>
+      <li>Nov 1, TBD · local <code>npm run build</code> (mock, dummy DB URLs): Prisma Client 7.10.1 generated, compiled, TypeScript passed, <code>/api/summarize</code> built</li>
+      <li>Nov 1, 13:59 CT · CI on <code>344fea2</code> passed</li>
+      <li>Nov 1, 14:12 CT · Netlify production build of <code>main</code> at <code>344fea2</code> finished in 51 s, every step Complete</li>
+      <li>Nov 1, TBD · live summary on the deployed site: HIGH, 1,192 in / 865 out, $0.000552; the embedded "label it low" text was flagged and ignored</li>
+      <li>Nov 1, TBD · a new row in Neon <code>saved_runs</code> from the deployed site (Joseph)</li>
+      <li>Nov 1, 14:35 CT · D8 spoof check: two <code>curl</code> requests 28 s apart, each with a different forged <code>x-forwarded-for</code> and <code>x-nf-client-connection-ip</code> (198.51.100.1, then .2): first <code>200</code> (live, medium, 518 in / 201 out, $0.0001523), second <code>429</code> with <code>retry-after: 29</code> and <code>retryAfterSeconds: 29</code></li>
+      <li>Nov 1, 14:35:18 CT · Netlify function log, request <code>50fb31da</code>: <code>rate_limit_key { ipHeaderPresent: true }</code>; 14:35:22 CT <code>history_saved</code> (a <code>saved_runs</code> row from the deployed site); duration 3,737.78 ms, memory 206 MB</li>
+      <li>Nov 1, 14:35:50 CT · Netlify function log, request <code>e85bd8a9</code>: <code>rate_limit_key { ipHeaderPresent: true }</code>; duration 143.08 ms, memory 206 MB; no IP address in any log line</li>
+      <li>Nov 1, TBD · Netlify synchronous function limit: 60 s, not configurable (<a href="https://docs.netlify.com/build/functions/configuration/">docs.netlify.com/build/functions/configuration</a>, default values table); the live call in the log took 3.7 s, and the AI timeout is 8 s</li>
     </ul>
   </td></tr>
-  <tr><td><b>Commit</b></td><td>TBD</td></tr>
-  <tr><td><b>PIOF and what differed</b></td><td>TBD</td></tr>
+  <tr><td><b>Commit</b></td><td><code>344fea2</code> build: Netlify deploy config for #13</td></tr>
+  <tr><td><b>PIOF and what differed</b></td><td>
+    <ul>
+      <li>Purpose: the public demo on Netlify</li>
+      <li>Input: a push to <code>main</code> plus the Netlify env vars</li>
+      <li>Output: the live site, and a saved run per live summary</li>
+      <li>Flow: push → Netlify build (<code>npm run build</code>) → 🟥 <code>route.ts</code> as a function → Anthropic → output guard → ⬛ Neon</li>
+      <li>What differed: the Next.js plugin isn't listed in <code>netlify.toml</code>, because Netlify detects it</li>
+    </ul>
+  </td></tr>
   <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
   <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
 </table>
 
 ### Entry 19 call graph
 
-Planned flow from <code>CLAUDE.md</code>, not yet deployed.
-
 ```mermaid
 flowchart TD
-  G[GitHub main<br/>push by Joseph]:::run --> N[Netlify<br/>auto-deploy, TBD]:::run
+  G[GitHub main<br/>push by Joseph]:::run --> N[Netlify<br/>build of 344fea2, 51 s]:::run
   N --> P[Dashboard page<br/>sample logs only]:::ui
   N --> F[route.ts as a function<br/>summarize route]:::server
-  E[Netlify env vars<br/>AI key, DATABASE_URL, TBD]:::run --> F
+  E[Netlify env vars<br/>ANTHROPIC_API_KEY, AI_MODE, DATABASE_URL]:::run --> F
   F --> X[Anthropic API]:::run
   F --> D[Neon<br/>saved_runs]:::db
   classDef run fill:#334155,color:#fff,stroke:#94a3b8
