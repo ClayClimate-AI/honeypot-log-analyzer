@@ -1,24 +1,45 @@
-# Week 6 Evidence (Joseph writes everything here)
+# Evidence: how the build maps to the course
 
-**Joseph writes every answer. Agents only format, under the rule in CLAUDE.md §6, after Joseph's yes.** Each heading notes when its evidence becomes available. Question text is copied from the course pages (CLAUDE.md §3).
-
----
-
-## Day 4 Build Plan
-
-- My AI feature:
-- Likely failure mode:
-- My system prompt (role + rule):
-- My three guardrails: input / output / failure:
+<b>Joseph writes every answer. Agents only format, under the rule in CLAUDE.md §6, after Joseph's yes.</b> The course map is drawn only from the repo, git history and CLAUDE.md; anything not yet built or proven is marked TBD.
 
 ---
 
-## Checks for Understanding
+## Course map
 
-### Day 1: Calling an AI API in Code
-_Status from the Atlas screenshot: Q1 to Q4 saved; Q4 to be updated after Exploration 2 (the AI-call ticket, live mode)._
+<table>
+  <tr><th>Course topic</th><th>What the build does for it</th><th>Where it lives (file or command)</th></tr>
+  <tr><td>W6 · Call an AI API from your own code, in the back end</td><td>The summarize route calls Claude Haiku 5.5 (<code>claude-haiku-5-5</code>) through an AI client seam; the browser never calls the AI. Live call proven Oct 26 2026 (520 in / 147 out tokens).</td><td><code>app/api/summarize/route.ts</code>, <code>lib/aiClient.ts</code>, <code>lib/liveAiClient.ts</code> (#5, 7aa9122)</td></tr>
+  <tr><td>W6 · Show the AI result in the UI</td><td>The dashboard shows the summary, the threat badge, tokens in/out and the cost of that call.</td><td><code>app/_components/Dashboard.tsx</code> (#3, fd81399)</td></tr>
+  <tr><td>W6 · Keep the key secret</td><td>The key is read only from <code>process.env.ANTHROPIC_API_KEY</code> on the server; <code>.env*</code> is git-ignored except <code>.env.example</code>; CI runs a gitleaks secret scan on the full history. In Week 7 the sandboxed builder sees only an <code>openshell:resolve:</code> placeholder.</td><td><code>lib/liveAiClient.ts</code>, <code>.gitignore</code>, <code>.github/workflows/ci.yml</code> (gitleaks 8.30.1), <code>lab/openshell/policy.yaml</code></td></tr>
+  <tr><td>W6 · System prompt in code (role + rules)</td><td>Joseph's prompt, 7 parts (role, task, untrusted excerpt, no added facts, <code>unknown</code> if unsure, defender framing, format); the excerpt is wrapped in <code>&lt;log_excerpt&gt;</code> tags and tag breakouts are neutralized.</td><td><code>lib/prompt.ts</code>, <code>lib/prompt.test.ts</code> (#5)</td></tr>
+  <tr><td>W6 · Change behavior through the system prompt</td><td>The format part changed from v1 to v2 (now 6 sentences, under 700 characters), with matching output guard limits. One combined commit, so the diff is not prompt-only (verifier T16, skipped by Joseph).</td><td><code>lib/prompt.ts</code> (#5 C9, 97b276b)</td></tr>
+  <tr><td>W6 · Tokens and cost per call</td><td>Cost is calculated on the server from <code>usage</code> × dated prices ($0.10 in / $0.50 out per 1M, price date 2026-10-06). Measured runs: $0.000125 (2-line excerpt) to $0.000727 (sample). The input card states about $0.0001–$0.0008 per call.</td><td><code>lib/cost.ts</code>, <code>lib/cost.test.ts</code>, <code>app/_components/Dashboard.tsx</code></td></tr>
+  <tr><td>W6 · Cap the input</td><td>Excerpts over 4,000 characters are rejected with the actual count, never truncated; uploads over 50 KB are rejected in the browser before reading.</td><td><code>lib/inputGuard.ts</code>, <code>app/_components/Dashboard.tsx</code> (#8, 65216c5)</td></tr>
+  <tr><td>W6 · Cap the output</td><td><code>max_tokens</code> 2,048 and effort <code>low</code> on the AI call; the summary is held to 6 sentences and 700 characters.</td><td><code>lib/liveAiClient.ts</code>, <code>lib/outputGuard.ts</code></td></tr>
+  <tr><td>W6 · Handle rate limits without crashing</td><td>One summary per minute per client (keyed only on <code>x-nf-client-connection-ip</code>, hashed); HTTP 429 with <code>Retry-After</code>; the dashboard shows an amber alert and a countdown. A provider 429 shows "The AI service is busy." Whether Netlify sends the header: TBD at deploy.</td><td><code>lib/rateLimit.ts</code>, <code>lib/retryAfter.ts</code>, <code>lib/aiFailure.ts</code> (#12, 7290f90 and bf39d95)</td></tr>
+  <tr><td>W6 · Guardrail: bad input</td><td>Empty, over-length and non-Cowrie input is rejected before the AI call, with the same quick checks repeated in the browser.</td><td><code>lib/inputGuard.ts</code>, <code>lib/inputGuard.test.ts</code> (#8)</td></tr>
+  <tr><td>W6 · Guardrail: bad output</td><td>A Zod schema checks the JSON reply (summary length and sentences, one of four labels); refusals and schema failures show "Couldn't produce a reliable summary for this excerpt."</td><td><code>lib/outputGuard.ts</code>, <code>lib/outputGuard.test.ts</code> (#10, b2c7a81)</td></tr>
+  <tr><td>W6 · Guardrail: failure or slowness</td><td>8,000 ms timeout with 0 retries; timeouts, 5xx, connection and auth errors map to a log code and a friendly message; the rest of the page keeps working.</td><td><code>lib/aiFailure.ts</code>, <code>lib/aiFailure.test.ts</code> (#10)</td></tr>
+  <tr><td>W6 · Test without spending tokens</td><td><code>AI_MODE</code> defaults to mock; <code>AI_MOCK_SCENARIO</code> triggers success, bad output, refusal, timeout or rate limit through the same guards.</td><td><code>lib/aiMode.ts</code>, <code>lib/mockAiClient.ts</code> (#2, #3, #10)</td></tr>
+  <tr><td>W6 · Name the failure mode and its guardrail</td><td>Main failure mode: prompt injection in the honeypot logs. The sample fixture has one injection line; the guard is the <code>&lt;log_excerpt&gt;</code> wrapping plus prompt rule 3, with the Zod check as the backstop.</td><td><code>fixtures/sample-session.jsonl</code>, <code>lib/prompt.ts</code>, <code>lib/outputGuard.ts</code> (CLAUDE.md D14)</td></tr>
+  <tr><td>W6 · Govern: tell the user it's AI</td><td>"AI generated · verify before acting" above every summary; header pills (Live/Mock AI, Sample logs only, 1 request / min); defender footer.</td><td><code>app/_components/Dashboard.tsx</code>, <code>app/_components/Header.tsx</code>, <code>app/_components/Footer.tsx</code></td></tr>
+  <tr><td>W6 · Explain the data flow, including the AI call</td><td>Joseph's Day 1 answer and call graph below trace click → route → guards → AI → screen. README diagram: TBD (Week 7 Step 7, #19).</td><td>This file, "Summarize data flow" section; <code>README.md</code> TBD</td></tr>
+  <tr><td>W6 · Review diffs, small commits</td><td>Every ticket runs through the verifier subagent (typecheck, lint, tests, a mock dev server, checks 1 to 12) and one <code>REVIEW.md</code>; Joseph approves or skips each finding and commits.</td><td><code>.claude/agents/verifier.md</code>, <code>REVIEW.md</code>, <code>git log</code></td></tr>
+  <tr><td>W6 · Catch an agent mistake</td><td>Verifier FAILs that were approved and fixed: the <code>&lt;/log_excerpt&gt;</code> breakout (#5 F1) and IPs missed by <code>redactIps</code> (Week 7 Step 3, A4).</td><td><code>lib/prompt.ts</code> (<code>neutralizeExcerptTags</code>), <code>lib/redactIps.ts</code> (e12c4af)</td></tr>
+  <tr><td>W6 · Log prompts</td><td>TBD (PROMPT_LOG.md, Part 2).</td><td>TBD</td></tr>
+  <tr><td>W6 · Runs locally and on GitHub, no secrets committed</td><td>Runs with the dev server in mock or live mode; CI runs typecheck, lint, tests and gitleaks on every push to <code>main</code> and every pull request.</td><td><code>npm run dev</code>, <code>.github/workflows/ci.yml</code> (#15, d5a4e9b)</td></tr>
+  <tr><td>W7 · Database: save runs</td><td>After the output guard passes, live runs are saved to Neon through Prisma: summary with IPs replaced by "attacker IP", label, mode, tokens, cost, excerpt length and SHA-256; never the raw excerpt. A database failure never blocks the summary.</td><td><code>prisma/schema.prisma</code>, <code>lib/runStore.ts</code>, <code>lib/prismaRunStore.ts</code>, <code>lib/redactIps.ts</code> (#16 part 1, e12c4af); migration <code>init_saved_runs</code> (b95cc35)</td></tr>
+  <tr><td>W7 · Database: history list, view, delete</td><td>TBD (Step 4, skipped for now).</td><td>TBD</td></tr>
+  <tr><td>W7 · Production deploy with env vars</td><td>TBD (Step 6, #13).</td><td>TBD</td></tr>
+  <tr><td>W7 · Real users try it</td><td>TBD (#18).</td><td>TBD</td></tr>
+  <tr><td>W7 · Rehearsed live agent change</td><td>TBD.</td><td>TBD</td></tr>
+</table>
 
-1. Explain what an 'AI API' is by connecting it to the regular APIs you learned in Week 4. What's the same, and what's different about what comes back?
+---
+
+## Joseph's answers
+
+### AI API compared with a regular API
 
 **1. What's the same (Week 4)**
 
@@ -69,7 +90,7 @@ flowchart LR
   class G1,O6 guard
 ```
 
-2. In an AI feature, where does the 'system prompt' live, and what does it do? Connect it to what you learned in Week 2.
+### The system prompt
 
 **1. Where it lives**
 
@@ -119,7 +140,7 @@ flowchart LR
   class V guard
 ```
 
-3. Trace the data flow for 'a user clicks Summarize and sees a summary,' including the AI call. Why does the AI call happen on the back end, not in the browser? Give TWO reasons.
+### Summarize data flow
 
 **1. Data flow**
 
@@ -165,63 +186,3 @@ flowchart TD
   class D,AN ext
   class FR,TP,RL,IG,FG,OG guard
 ```
-
-4. From Exploration 2: paste the system prompt you wrote. Was the AI's output actually good? How did you judge it? _(available after the AI-call ticket, live mode)_
-
-### Day 2: Tokens, Cost & Rate Limits
-
-1. Explain tokens as the unit of AI cost. Connect it back to what tokens meant in Week 1. Which costs you money: the input, the output, or both?
-2. From Exploration 2: roughly what does one call of your feature cost, and what would 1,000 calls cost? Name one thing you could change to lower it. _(after the token-usage ticket, live mode)_
-3. A client asks, 'What happens when 100 people use this at the same time?' Explain rate limits in plain terms and one way your app can handle hitting one without crashing.
-4. From Exploration 3: what input cap did you add, and why? How does capping protect you (think about a leaked key or a giant input)? _(after the input-guard ticket)_
-
-### Day 3: Guardrails & Reliability
-
-1. Name the three places an AI feature can fail (input, output, failure) and give a realistic example of each for YOUR feature.
-2. From Exploration 1: what happened when you threw bad input at your feature? Which failure did you NOT expect? _(after the break-it pass, before the guardrail tickets)_
-3. Why is the AI's output always a 'draft' you should guard before showing a user? Name two ways to guard output (one of them involving the system prompt). Connect to Phase 1.
-4. For your Week 6 project: state your feature's failure mode and the specific guardrail you'll build for it. Why does that guardrail matter for a real user?
-
----
-
-## Prompt Log
-
-### Day 1
-1. Exploration 2 agent prompt (that you wrote) + your feature's system prompt. _(AI-call ticket)_
-2. Exploration 3 before/after: what one system-prompt change did. _(system-prompt-change ticket)_
-3. One idea for the AI feature you'll build for this week's project.
-
-### Day 2
-1. Token counts (short vs. long input) and your cost estimate. _(token-usage ticket, live mode)_
-2. Exploration 3 prompts + what you capped and how errors are handled. _(input-guard + failure tickets)_
-3. One cost/limit consideration for the feature you'll build this week.
-
-### Day 3
-1. Your feature's failure modes from Exploration 1 (your break-it list). _(break-it pass)_
-2. Exploration 2 + 3 prompts + which guardrails you added and what they caught. _(guardrail tickets)_
-3. Week 6 project one-liner: your AI feature + its failure mode + your main guardrail.
-
-### Agent mistake caught
-_(any ticket: an approved verifier FAIL, or something you caught in a diff)_
-
----
-
-## Explained
-
-### Data flow, including the AI call
-_(after the AI-call ticket; the README diagram is a builder draft you review)_
-
-### Failure mode + guardrail
-_(after the guardrail tickets; main failure mode is prompt injection, backstop is the Zod check, per CLAUDE.md D14)_
-
-### Cost
-_(after the token-usage ticket, live mode)_
-
-### Govern
-1. Where did you use AI?
-2. What did you check?
-3. What would you tell a user?
-
----
-
-## Reflection
