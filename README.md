@@ -129,31 +129,61 @@ npm run build          # prisma generate, then next build
 
 **Netlify deploy**
 
-<p>The repo is linked to Netlify, so a push to <code>main</code> starts a production build. <code>netlify.toml</code> runs <code>npm run build</code> (<code>prisma generate</code>, then <code>next build</code>) and publishes <code>.next</code> on Node 22; Netlify detects the Next.js runtime itself, so no plugin is pinned. The summarize route runs as a Netlify function. The three variables above are set in the Netlify UI with Builds and Functions scope, and the two secrets are marked as secret values. GitHub Actions (<code>.github/workflows/ci.yml</code>) runs typecheck, lint, tests and a gitleaks secret scan on every push to <code>main</code> and every pull request.</p>
+    git push to main
+    ├── Netlify production build (netlify.toml)
+    │   ├── npm run build → prisma generate, then next build
+    │   ├── publishes .next on Node 22
+    │   └── Next.js runtime detected by Netlify (no plugin pinned)
+    ├── Summarize route → runs as a Netlify function
+    └── GitHub Actions (.github/workflows/ci.yml), also on every pull request
+        └── typecheck · lint · tests · gitleaks secret scan
+
+- The three variables above are set in the Netlify UI with Builds and Functions scope.
+- The two secrets are marked as secret values.
 
 **Rate limit (known limitation)**
 
-<p>One summary per minute per client. The client is identified only by Netlify's <code>x-nf-client-connection-ip</code> header, hashed before it is stored and never logged; forwarding headers such as <code>x-forwarded-for</code> are ignored. Without that header (always the case locally), every request shares one bucket. The limiter is in memory, so each function instance keeps its own count and a cold start resets it; the hard backstop is the monthly spend limit on the Anthropic workspace that holds the key.</p>
+    One summary per minute per client
+    ├── Client identity → Netlify's x-nf-client-connection-ip header only
+    │   ├── hashed before it is stored
+    │   └── never logged
+    ├── Ignored         → forwarding headers such as x-forwarded-for
+    ├── Header missing  → every request shares one bucket (always the case locally)
+    ├── Storage         → in memory
+    │   ├── each function instance keeps its own count
+    │   └── a cold start resets it
+    └── Hard backstop   → monthly spend limit on the Anthropic workspace that holds the key
 
 ## 3. What the production logs proved (Nov 1, CT)
 
-- **D8 spoof check:** two `curl` requests 28 s apart, each with a different forged IP in `x-forwarded-for` and `x-nf-client-connection-ip`, got `200` and then `429` (`retry-after: 29`). The 429 took 143 ms.
-- **The header reaches the route:** `rate_limit_key` showed `ipHeaderPresent: true` on both requests, and no IP address appears in any log line.
-- **The database write works:** the live call (request `50fb31da`) logged `history_saved` at 14:35:22 CT, took 3,737.78 ms, and used 206 MB of memory.
-- **Time limits:** Netlify's synchronous function limit is 60 s ([Netlify docs](https://docs.netlify.com/build/functions/configuration/)), and the AI timeout is 8 s, so the fallback message always arrives first.
+| Check | How | Result |
+|---|---|---|
+| D8 spoof check | Two `curl` requests 28 s apart, each with a different forged IP in `x-forwarded-for` and `x-nf-client-connection-ip` | `200`, then `429` (`retry-after: 29`); the 429 took 143 ms |
+| Header reaches the route | `rate_limit_key` log line | `ipHeaderPresent: true` on both requests; no IP address in any log line |
+| Database write | Live call, request `50fb31da` | `history_saved` at 14:35:22 CT; 3,737.78 ms; 206 MB of memory |
+| Time limits | Netlify synchronous limit 60 s ([Netlify docs](https://docs.netlify.com/build/functions/configuration/)) vs. AI timeout 8 s | The fallback message always arrives first |
 
 ## 4. What's still open
 
-TBDs remaining in [`PROMPT_LOG.md`](PROMPT_LOG.md):
+TBDs in [`PROMPT_LOG.md`](PROMPT_LOG.md):
 
-- Start times for every entry (only commit times are recorded).
-- Exact prompt text for every entry.
-- The model for entries whose commits have no co-author line (only Entries 4, 6, 7 and 16 name it).
-- Clock times on most Verified checks.
-- Entry 1: Tool and Asked. Entry 3: Verified.
-- Entry 17: Tool, the image rebuild check, and the first verifier run with `lsof`.
-- Entry 18: Tool and Asked.
-- Entry 19: the time of the browser live summary (HIGH, 1,192 in / 865 out) and of the `saved_runs` row it created.
-- Every Explained row (Joseph writes).
+    PROMPT_LOG.md
+    ├── Every entry
+    │   ├── Start times (only commit times are recorded)
+    │   ├── Exact prompt text
+    │   ├── Model, where the commit has no co-author line (only Entries 4, 6, 7 and 16 name it)
+    │   ├── Clock times on most Verified checks
+    │   └── Explained row (Joseph writes)
+    ├── Entry 1  → Tool, Asked
+    ├── Entry 3  → Verified
+    ├── Entry 17 → Tool; the image rebuild check; the first verifier run with lsof
+    ├── Entry 18 → Tool, Asked
+    └── Entry 19 → time of the browser live summary (HIGH, 1,192 in / 865 out)
+                   and of the saved_runs row it created
 
-Also open outside the log: history pages and admin login (Week 7 Step 4) and cost per saved run (Step 5), both skipped for now; the rest of #14 (full code review, verifier checks 1 to 12, your review of the data-flow diagram).
+Outside the log:
+
+    Week 7
+    ├── Step 4 → history pages and admin login (skipped for now)
+    ├── Step 5 → cost per saved run (skipped for now)
+    └── #14    → full code review, verifier checks 1 to 12, your review of the data-flow diagram
