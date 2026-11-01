@@ -14,21 +14,53 @@ Defensive learning project: a local SSH honeypot plus an AI that summarizes atta
 
 ## 1. What it is and why
 
-<p>A Next.js app that sends a capped excerpt (4,000 characters) of a <a href="https://github.com/cowrie/cowrie">Cowrie</a> SSH honeypot log to Claude Haiku 5.5 and shows a short summary and a threat label (low, medium, high or unknown) for a security analyst: what happened, what it means, and what to watch. Three guardrails sit around the AI call: an input guard (empty, over the cap, or not Cowrie JSON is rejected before any call), an output guard (a Zod schema checks the reply before anything is shown), and a failure guard (an 8 s timeout with no retries, and a friendly message for every error). Live summaries are saved to Neon Postgres with attacker IPs replaced by "attacker IP"; the raw log is never stored. Built as the Week 6 project ("Add a Reliable AI Feature") and upgraded in Week 7.</p>
+A Next.js app that sends a capped excerpt (4,000 characters) of a [Cowrie](https://github.com/cowrie/cowrie) SSH honeypot log to Claude Haiku 5.5 and shows a short summary plus a threat label (low, medium, high or unknown) for a security analyst: what happened, what it means, and what to watch.
 
-<p><b>Threat model:</b> this is defensive research for defenders, not an attack tool, and the honeypot is never exposed publicly.</p>
+Built as the Week 6 project ("Add a Reliable AI Feature") and upgraded in Week 7.
 
-<p><b>Build environment:</b> OpenShell was the sandbox around the Claude CLI builder. The sandbox ran as a Docker container from a local image (<code>os-agent:local</code>, built from <code>lab/openshell/Dockerfile</code>). It kept the builder's API key and outbound traffic contained while the code was being written, so the builder only ever held a placeholder key and could reach only allowed sites (<code>lab/openshell/policy.yaml</code>). It never touched the live app's runtime on Netlify, so the Week 6 code guardrails protect that side. Cowrie itself ran locally in Docker Desktop (SSH on port 2222 inside the container) to produce the logs, and it was never exposed publicly.</p>
+**Threat model:** this is defensive research for defenders, not an attack tool, and the honeypot is never exposed publicly.
 
-**Boundaries**
+### Guardrails around the AI call
+
+    Summarize request
+    ├── Input guard    → empty, over the cap, or not Cowrie JSON is rejected before any call
+    ├── AI call        → Claude Haiku 5.5
+    ├── Output guard   → a Zod schema checks the reply before anything is shown
+    └── Failure guard  → 8 s timeout, no retries, a friendly message for every error
+
+### Storage
+
+- Live summaries are saved to Neon Postgres.
+- Attacker IPs are replaced by "attacker IP".
+- The raw log is never stored.
+
+### Build environment
+
+    Build side (OpenShell)
+    ├── Sandbox around the Claude CLI builder
+    ├── Docker container from os-agent:local (lab/openshell/Dockerfile)
+    ├── Builder held only a placeholder key
+    └── Outbound traffic limited to allowed sites (lab/openshell/policy.yaml)
+
+    Run side (Netlify)
+    └── Protected by the Week 6 code guardrails; OpenShell never touches it
+
+    Log source
+    └── Cowrie in Docker Desktop on my machine (SSH on port 2222 in the container), never exposed
+
+### Boundaries
 
 - **Local only.** Cowrie runs in Docker on my own machine. Test sessions are me SSHing into localhost.
+
 - **Observe and explain only.** No scanning other machines, no exploit code, no attack tooling, no collecting other people's credentials.
+
 - **Defender framing.** The AI summarizes what happened, what it means, and what to watch. It never explains how to attack.
+
 - **Sample logs only.** The public site uses a sanitized sample (`fixtures/sample-session.jsonl`: documentation IP ranges, reserved domains, default passwords). The honeypot is never reachable from the site.
+
 - **No real attacker data leaves the machine,** except the capped excerpt sent to the AI API for summarization.
 
-**Data flow**
+### Data flow
 
 One Summarize request, in the order `app/api/summarize/route.ts` runs it:
 

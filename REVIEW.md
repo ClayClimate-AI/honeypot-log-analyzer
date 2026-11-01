@@ -109,7 +109,7 @@ The ticket's `/code-review` box is covered this way: the verifier's checks 1 to 
 | # | Finding | Evidence | Mark |
 |---|---|---|---|
 | S1 | API contract said errors return `{ error: { code, message }, mode }`; the route returns `{ error }` (plus `retryAfterSeconds` on a 429) | `app/api/summarize/route.ts:50, 71, 78`; dashboard and tests depend on it | [approve] spec fixed to match the code |
-| S2 | Story 74: no mock-mode clip of the bad-output fallback linked from the README (D15, moved to Week 7) | `README.md` | [skip] left open; Joseph records it |
+| S2 | Story 74: no mock-mode clip of the bad-output fallback linked from the README (D15, moved to Week 7) | `README.md` | [skip] dropped by Joseph (Nov 1 2026); no clip needed |
 | S3 | Story 23: the summary should call out an injection attempt; prompt-driven, no test enforces it | Joseph's deployed run, Nov 1 2026, flagged and ignored the injection text | [skip] advisory |
 | S4 | Week 6 spec lines superseded by Week 7 (no database, PR workflows out of scope, Netlify time limit still to confirm) | `docs/spec.md` lines 201, 242, 250, 260 | [approve] one Week 7 note added at the top of the spec |
 
