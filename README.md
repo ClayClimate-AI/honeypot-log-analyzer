@@ -2,6 +2,7 @@ Defensive learning project: a local SSH honeypot plus an AI that summarizes atta
 
 <h1 align="center">Cowrie Log Summarizer</h1>
 <p align="center"><b>Live site:</b> <a href="https://honeypot-log-analyzer.netlify.app">honeypot-log-analyzer.netlify.app</a> · sample logs only</p>
+<p align="center"><b>Companion pages:</b> <a href="https://honeypot-log-analyzer-data-flow.netlify.app/">data flow</a> · <a href="https://honeypot-log-analyzer-openshell-demo.netlify.app/">OpenShell demo</a></p>
 <p align="center">
   <a href="https://github.com/ClayClimate-AI/honeypot-log-analyzer/actions/workflows/ci.yml"><img src="https://github.com/ClayClimate-AI/honeypot-log-analyzer/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://honeypot-log-analyzer.netlify.app"><img src="https://img.shields.io/badge/live-Netlify-00C7B7?logo=netlify&amp;logoColor=white" alt="Live on Netlify"></a>
@@ -48,6 +49,8 @@ Built as the Week 6 project ("Add a Reliable AI Feature") and upgraded in Week 7
     Log source
     └── Cowrie in Docker Desktop on my machine (SSH on port 2222 in the container), never exposed
 
+Walkthrough: [OpenShell demo](https://honeypot-log-analyzer-openshell-demo.netlify.app/)
+
 ### Boundaries
 
 - **Local only.** Cowrie runs in Docker on my own machine. Test sessions are me SSHing into localhost.
@@ -63,6 +66,8 @@ Built as the Week 6 project ("Add a Reliable AI Feature") and upgraded in Week 7
 ### Data flow
 
 One Summarize request, in the order `app/api/summarize/route.ts` runs it:
+
+Interactive version: [data flow page](https://honeypot-log-analyzer-data-flow.netlify.app/)
 
 ```mermaid
 flowchart TD
