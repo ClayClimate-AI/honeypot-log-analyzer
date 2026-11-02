@@ -1,6 +1,6 @@
 stage: W7
-step: 7 (6 of 6)
-issue: #19
+step: 7 (6 of 6) done
+issue: #19 (GitHub #17, closed)
 title: README
 
 done:
@@ -10,12 +10,15 @@ done:
 - lsof added to the sandbox image (2ae7b32)
 - os-agent:local rebuilt; build sandbox recreated with lsof and git
 - Step 6 Netlify production deploy (#13, 344fea2): live site, Neon write, D8 header proof
-- PROMPT_LOG.md (8cfa036; Entry 19 filled)
+- PROMPT_LOG.md (8cfa036; Entry 19 filled; Explained and Reflection for Entries 1 to 19 in 7c6788d)
+- Step 7 README and #14 final review (8267bc9, b37140d, 6fa6def, 8b94de6, 7c6788d)
+- Closed on GitHub: #13, #14, #15, #17
 
 skipped for now:
 - Phase A2 CRUD routes: admin login, read, delete, save limits (Step 4)
 - Step 5 cost per saved run (needs the history screen from Step 4)
 
 next:
-- Step 7 README (#19)
-- #18 HITL, then #14 final review
+- #18 HITL
+- Joseph reviews the README data-flow diagram
+- #5 evidence (Day 1 Q4, Day 2 token counts, Exploration 3 before/after, price re-check), then close #5
