@@ -167,23 +167,26 @@ npm run build          # prisma generate, then next build
 
 TBDs in [`PROMPT_LOG.md`](PROMPT_LOG.md):
 
-    PROMPT_LOG.md
-    ├── Every entry
-    │   ├── Start times (only commit times are recorded)
-    │   ├── Exact prompt text
-    │   ├── Model, where the commit has no co-author line (only Entries 4, 6, 7 and 16 name it)
-    │   ├── Clock times on most Verified checks
-    │   └── Explained row (Joseph writes)
-    ├── Entry 1  → Tool, Asked
-    ├── Entry 3  → Verified
-    ├── Entry 17 → Tool; the image rebuild check; the first verifier run with lsof
-    ├── Entry 18 → Tool, Asked
-    └── Entry 19 → time of the browser live summary (HIGH, 1,192 in / 865 out)
-                   and of the saved_runs row it created
+```
+PROMPT_LOG.md
+├── Every entry
+│   ├── Start times (only commit times are recorded)
+│   ├── Exact prompt text
+│   ├── Model, where the commit has no co-author line (only Entries 4, 6, 7 and 16 name it)
+│   └── Clock times on most Verified checks
+├── Entry 1  → Tool, Asked
+├── Entry 3  → Verified
+├── Entry 17 → Tool; the image rebuild check; the first verifier run with lsof
+├── Entry 18 → Tool, Asked
+└── Entry 19 → time of the browser live summary (HIGH, 1,192 in / 865 out)
+               and of the saved_runs row it created
+```
 
 Outside the log:
 
-    Week 7
-    ├── Step 4 → history pages and admin login (skipped for now)
-    ├── Step 5 → cost per saved run (skipped for now)
-    └── #14    → full code review, verifier checks 1 to 12, your review of the data-flow diagram
+```
+Week 7
+├── Step 4 → history pages and admin login (skipped for now)
+├── Step 5 → cost per saved run (skipped for now)
+└── #14    → verifier checks 1 to 12 pass; your review of the data flow diagram is left
+```

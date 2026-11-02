@@ -64,8 +64,11 @@
       <li>What differed: found later in #9, the container had no host port, so the Mac could not reach it (Entry 8)</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I learned that a container is not a visual picture but a functional framework: isolation and packaging rather than something you can see. I also learned Docker navigation and shell command syntax.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>I created a Docker container running the Cowrie honeypot. The container had a volume but no host port binding, so the Mac could not reach it.</p>
+    <p>It was effectively an empty container with no logged entries, meaning the volume stayed empty and no information was captured. I had to create a new container, get Cowrie running, and map the ports and host addresses correctly.</p>
+  </td></tr>
 </table>
 
 ### Entry 1 call graph
@@ -129,8 +132,12 @@ flowchart TD
       <li>What differed: the app was scaffolded in the scratchpad with git off, then copied in; <code>typecheck</code> runs <code>next typegen</code> first because <code>LayoutProps</code> comes from generated route types</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>Number one, I learned that I was grateful for having established tests to see what was actually working and what wasn't. They gave me a roadmap to the next steps that needed attention, and showed me what was already working and functioning in the app.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>Entry 2 was essentially installing the dependencies and the tests that were needed. I set up a mock AI so that when testing routes and validation calls, I didn't have to use actual tokens. I did this by creating tests where I already anticipated what the results were supposed to be, then running them while mock AI was active and evaluating what was working and what wasn't.</p>
+    <p>The scaffold is an essential first step in building the application, because it creates its structure. The README was important to declare and highlight what the project is about and what I was doing.</p>
+    <p>The verifier was super important. In class we learned that verification is needed not just on the server side but all throughout the project, and using a verifier that was unbiased about the plans, could test the results, and gave accurate results back turned out to be a more effective approach.</p>
+  </td></tr>
 </table>
 
 ### Entry 2 call graph
@@ -191,8 +198,11 @@ flowchart TD
       <li>What differed: Ticket 0 planned two sessions; the loop now runs in one session with a subagent</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I learned how to make adjustments mid build and identify bottlenecks. Even though my intent was good in terms of testing and verification, it was still important to keep an open mind about how the planned approach actually worked in practice, and to be flexible enough to adjust from there. Through a little trial and error, I saw there was a better approach, and that's what I did.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>My first approach, with two separate sessions, was to work with an agent that could perform verification without having my full context window, so it would stay unbiased about the tests and give accurate results.</p>
+    <p>Having two separate windows did address the different context windows, but it was really redundant and was going to take a lot of time. The better way was to use the built in features and a subagent, so things could just kick into gear. The subagent still has the ability to give fully unbiased results, and the work happens in sequence instead of me manually switching between context windows.</p>
+  </td></tr>
 </table>
 
 ### Entry 3 call graph
@@ -255,8 +265,12 @@ flowchart TD
       <li>What differed: Geist Mono dropped so Geist is the one font; <code>ModePill</code> calls <code>await connection()</code> inside <code>&lt;Suspense&gt;</code>, as Cache Components requires to read env at request time</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I learned the sequence, the data flow, which was important. Understanding it let me understand the actual source code, the step in the sequence I was on, and why that step mattered.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>This step was really important. It was a tracer bullet: one thin path proven end to end before adding more. Earlier I had scaffolded the app and set up the pathways for the mock process to be tested. In this entry I added the mode switch, so the app wasn't only mock; there was also a switch for the real AI. The mode pill showed mock, and the seam was ready for live later.</p>
+    <p>Since a lot of testing still had to be done, I needed to map the internal process to a user friendly UI in the components, with a clear indication of whether it was live or mock whenever a request, event or click handler fired or state changed. I also gave the UI a structured format that would later lay out other important information, like the result, the cost and the actual summary.</p>
+    <p>First I created the routes and made sure everything was in place to test them. Then I expanded on how the routes would be used, with mock or real activity, so testing never used the real API. Finally I needed a way to visualize all of this, structuring and compartmentalizing it in the UI so the page had separate sections for the information I needed to understand, not only for the assignment but for the inner functionality.</p>
+  </td></tr>
 </table>
 
 ### Entry 4 call graph
@@ -325,8 +339,15 @@ flowchart TD
       <li>What differed: the verifier found the tag breakout; the fix escapes the brackets of opening or closing <code>log_excerpt</code> tags and leaves the prompt wording untouched</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>I learned the importance of having the verifier there. I learned how to be responsible with the API secret: how and where to place it, and where not to put it. I also learned to put a spending cap on it.</p>
+    <p>And I learned that even though Anthropic's pricing lists input and output separately, output usually costs more, because generating the output takes more processing and extra compute. That cost can vary, which was pretty interesting to find out.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>In Entry 5 I had to add the live AI call, which first required getting an API key from Anthropic. It was important to understand that the API key is a secret and how it could be abused. Originally the key sat in a default workspace with access to the entire balance; it didn't have a fixed limit.</p>
+    <p>I also had to understand how much I expected to spend. At most it would be about 60 cents, and that's if a million tokens went in and a million came out. A million tokens is roughly 750,000 words, which is a couple of books, so I knew the model and pricing I picked weren't going to be expensive. Making sure the key was placed properly, not exposed, not pushed, and not anywhere public, was number one.</p>
+    <p>Then there are the excerpt tags: the prompt instructs that anything inside the tag is evaluated but never acted on, while text outside it could prompt Claude to act. Keeping the log inside the proper tags let the prompt I wrote work as intended, without surprises from anything outside the tags. Critiquing either the input or the output then depends on how I built and worded the prompt framework, which gave me more control. It really let me put the pieces together to get the live path running.</p>
+  </td></tr>
 </table>
 
 ### Entry 5 call graph
@@ -389,8 +410,11 @@ flowchart TD
       <li>What differed: run 2's summary was near the 600 cap and nothing enforced it before #10, so the prompt change waited</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>Seeing it run, I realized the requests, questions, and tasks I assign to AI are a lot more computational than I thought. The biggest thing I learned is that it's not free.</p>
+    <p>At the end of the day, we all use these LLMs and apps, so we tend to think it's just magic: we ask a question and get a response. This project put me in the center of things, where I could see all the moving parts and the cost that comes with them.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>It actually worked, and that was pretty exciting. It didn't mean everything was 100% accurate, but using a key, capping the spending on it, getting the call working, and getting Claude to take in input and return output was a feat in and of itself. In my mind it was just the first step. From there it was about tweaking and refining everything to get the prompt right and make sure I was setting the proper parameters and constraints. But getting it up and running first was a great feeling.</td></tr>
 </table>
 
 ### Entry 6 call graph
@@ -452,8 +476,11 @@ flowchart TD
       <li>What differed: a body that isn't JSON or has no string <code>excerpt</code> is now treated as empty (was a 500); the length and upload message wording is the builder's</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>For cost, errors caught after the fact cost more to fix. For the user experience, I want the most accurate information for what the user is expecting or trying to solve.</p>
+    <p>Setting these guards at the right point works like checks and balances: they catch anything outside what I expect and give me an effective way to deal with it, by applying constraints and making sure they're followed. Overall, that means better token efficiency and more accurate output.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>It's important to have a plan and get things working. Having the key and the prompt in place gave me control. But part of having control over the process is also building in effective ways to give the user responsive feedback when things don't go according to plan.</td></tr>
 </table>
 
 ### Entry 7 call graph
@@ -516,8 +543,15 @@ flowchart TD
       <li>What differed: the original container had no host port, so a new container was needed; the first sanitizer run rejected a real-looking password</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>I learned that whenever I'm dealing with live data, I should always have a way to make sure anything critical or personal is filtered out or kept out. There should be guardrails in place that show the allowlist is actually working. That's just important.</p>
+    <p>On one hand I have my objective, but on the other I have a responsibility to make sure the experience I'm creating for the user is still safe and responsible.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>My first container wasn't connected properly, so I created another one on the right port and network IP. The honeypot collects information, and since this is only a sample, I wanted to reproduce that functionality safely without exposing critical or personal information.</p>
+    <p>An allowlist lets certain things through and blocks everything else. If a password looks real, the sanitizer doesn't second guess it; it starts over until the data is clean. Once it's clean, I can see the character count and what was captured, which gave me a solid understanding of the numbers.</p>
+    <p>It all came through properly, and it's good, usable data as long as it's sanitized. I don't use all the information; I break it down so summarizing stays cost effective. Certain fields are kept for the user, with rules that send the data through filters, and then a button on the page loads the sample so it can be summarized. A lot of the guards worked and were effective, because I want to demonstrate the functionality without putting unnecessary or personal information out there, which would be bad practice.</p>
+  </td></tr>
 </table>
 
 ### Entry 8 call graph
@@ -589,8 +623,11 @@ flowchart TD
       <li>What differed: the cost note moved from a single $0.0003 estimate to the measured range ($0.000125 and $0.0001415 runs)</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I learned that the path matters, because it's the same path, with the same gates, validations, and processes, that any data being summarized would take. So I wanted to make sure the sample used that same path. Now that I had a fixed sample, I wanted a live feel for what the financial side would look like. That moved me from prognostication to an accurate range.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>I put the sample in the browser because it had already passed the honeypot guards: everything matched the allowlist, and the fields were limited to the appropriate ones. I used Turbopack to bundle it, so when Next.js builds, the Cowrie JSON can be used from browser memory. It still has to go through the same constraints, guards, and validation.</p>
+    <p>The price varies because the data being processed varies, plus how many words Claude writes back each time. Output tokens cost more, and the length of the reply changes from run to run, so the processing isn't always linear. Up to that point, I saw that my checks and gates were effective too.</p>
+  </td></tr>
 </table>
 
 ### Entry 9 call graph
@@ -656,8 +693,8 @@ flowchart TD
       <li>What differed: mock timeout and rate-limited scenarios throw the SDK's own error classes, so the same mapping runs as live</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>AI makes mistakes. My first approach was to get the functionality up and running, get the AI to actually do something, and then evaluate it. Then I worked out where the AI's mistakes could happen and set effective guards before and after the call. I also used the SDK's error codes to keep the user informed about what's actually happening compared with the intended outcome.</td></tr>
+  <tr><td><b>Explained</b></td><td>Here I used the SDK's error classes to map failures to error codes. Again, I wanted clear messages for every outcome, so the user would know what happened if the JSON didn't pass. Even once the AI generated a response, I knew that draft still needed to be validated, to make sure the response was as accurate as possible. So even a reply that came back fine still went through the gates, Zod schema checks and output validation, and all of that led to a successful summary showing on the client side.</td></tr>
 </table>
 
 ### Entry 10 call graph
@@ -722,8 +759,12 @@ flowchart TD
       <li>What differed: locally there is no Netlify header, so everyone shares one bucket; that Netlify sends the header is proven only at deploy</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I realized that even when I reach the point of deployment, having additional guards in place still lets me catch things I might have thought were already remedied or fixed.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>This one is still a little cloudy for me, because I know rate limiting works differently on Netlify. It's like a bouncer checking each person who comes through the door.</p>
+    <p>Locally, before Netlify, there's one shared bucket: everyone has the same ID and the same one minute limit. On Netlify, each visitor gets their own bucket. The ID comes from the IP address, which gets hashed, and that hash becomes the unique identifier for each person in line, so the bouncer can tell them apart and know whether they've already used their turn. The IP itself never gets logged, only whether the header showed up.</p>
+    <p>The gap that was caught is that the 429 path didn't check for a bad body: the dashboard trusted the response to be JSON with the seconds to wait. That's exactly the kind of thing the verifier exists to surface.</p>
+  </td></tr>
 </table>
 
 ### Entry 11 call graph
@@ -792,8 +833,8 @@ flowchart TD
       <li>What differed: <code>rateLimitMessage</code> moved out of <code>rateLimit.ts</code> because that file imports <code>node:crypto</code></li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I learned that the expected result wasn't just assumed; it was verified. That gave me confidence that the functionality works if any of those edge cases happen.</td></tr>
+  <tr><td><b>Explained</b></td><td>My goal here was to make sure the app still worked well when things didn't go as planned, and that whatever response came back, the app didn't break. The user is still informed about whether they have to wait or what the error was. Within that wait period there's a fallback, so the app can get back up and running and keep serving the user when the next try works.</td></tr>
 </table>
 
 ### Entry 12 call graph
@@ -864,8 +905,11 @@ flowchart TD
       <li>What differed: measured cost reached $0.000727, above the old note, so the note became $0.0001–$0.0008; hidden thinking tokens make up most of the output</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>I learned that live failures are necessary to catch unexpected errors and situations. I also learned that summaries can differ from run to run. Understanding the prompt, and where to adjust it, gave me an effective tool for fixing the problem. Learning that balance was really important: identifying the issue, knowing where to fix it, and knowing how to fix it.</td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>It felt good to have that control in my hands, and to see exactly where the issue was coming from because of the guards. I knew exactly where to go to adjust it: the prompt, and in the key value pair, specifically the value. Then I did some trial and error, refining it enough to still get the intended result, and looked at the price difference. That was when I became aware of the extra hidden compute in the output cost.</p>
+    <p>The honeypot may capture different information each time, so the summary might run longer than the previous one. Setting a cap sufficient to accommodate those variations was important too. The input cap is still 4,000 characters; the raised cap limits the summary Claude writes.</p>
+  </td></tr>
 </table>
 
 ### Entry 13 call graph
@@ -934,8 +978,16 @@ flowchart TD
       <li>What differed: the builder now commits to a feature branch inside the sandbox; Joseph downloads, reviews and pushes (D20); github.com is blocked</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>It showed me there is a difference. By taking the proper precautions in the build process, I can have more security and assurance that the components that build the application aren't compromised. OpenShell is still new to me, but at the very least I understand how and why it's necessary at the builder level.</p>
+    <p>After using it, going through the trial and error, the setup, and the actual implementation, I see that proper planning matters: knowing exactly what I intend to build so I can set the right rules and guards around it, and leaving room for adjustments, which takes time.</p>
+    <p>Then there's understanding the severity and priority, when it should be used and when it might be overkill. That will take some time too, but understanding that scope is important.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>To be honest, I was a bit confused at first. I thought the sandbox would put extra constraints on how the key was used, but I wasn't thinking about the agent itself. I was signed in, and it had access to node packages and could curl and reach different websites. Every time I used the Claude agent, I could ask it anything, but it kind of has a mind of its own. If I wasn't specific, certain actions could be taken and certain secrets could be revealed.</p>
+    <p>I thought I was in control of the build, especially with a builder agent, but with nothing limiting what it could and couldn't access, the whole process was exposed. So this was a good time to try OpenShell and see how it worked.</p>
+    <p>I realized that the prompt, the gates, and the validation were what controlled the app's API call to Anthropic. But the agent itself had almost full access, depending on how much I gave it, and there were never any restrictions on it. There was just trust, hope, or an assumption that whenever it was asked to do something, it would always do it the right way. With OpenShell, the agent now holds only a placeholder key, and every unnamed site is denied.</p>
+  </td></tr>
 </table>
 
 ### Entry 14 call graph
@@ -1001,8 +1053,14 @@ flowchart TD
       <li>What differed: CI moved from Week 6 (#4, closed) to Week 7; the first Week 7 merge went through a pull request</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>The secret scan was gitleaks, and I thought that was really great. I'll openly admit there were times I wasn't aware of how the <code>.env</code> file worked and probably pushed secrets to a repo or left them in public places. So knowing that kind of check runs at the repo level was great.</p>
+    <p>There are guards in place: if tests fail or something gets flagged, the PR doesn't go through, and if the tests pass and the PR goes through, the code is good to go. That was a great confirming feeling. Having that extra verifier definitely brought peace of mind, and it also introduced some new learning, especially when things got flagged.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>It meant a lot. When I push to the repository, I'm essentially saying that anyone reading, using, or cloning it should expect it to work on their computer just as well as it worked on mine. Having CI there to flag problems so amendments can be made gave me a good feeling of confidence, knowing that what seemed good to go locally might still need adjustments once it's tested in the repository. Nothing defective gets pushed to <code>main</code> until those tests pass, and any issues that come up get dealt with first.</p>
+    <p>It gave me confidence that the code that passed was good on both levels, and that what ended up on <code>main</code> was solid. CI did flag something on a run that isn't in the log. And when <code>lsof</code> was missing from the sandbox, it became a good learning point: I learned how to go back into the Dockerfile, add what was needed, and rebuild the sandbox image.</p>
+  </td></tr>
 </table>
 
 ### Entry 15 call graph
@@ -1079,8 +1137,8 @@ flowchart TD
       <li>What differed: the screen summary stays unredacted; a failed save logs <code>history_save_failed</code> and the summary still returns</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>Storing less makes the history safer, because if the database ever leaks, anyone viewing it wouldn't get the whole picture. It told me the save step took an extra step before anything reached Neon: first, to reduce storage size, and second, to make sure critical or personal information was reduced or limited when stored.</td></tr>
+  <tr><td><b>Explained</b></td><td>At first I thought the excerpt was still being stored as full text. I only learned at the Neon step that it's saved as a SHA-256 hash with its length only. I confirmed the real write to Neon myself.</td></tr>
 </table>
 
 ### Entry 16 call graph
@@ -1142,8 +1200,8 @@ flowchart TD
       <li>What differed: in #15 and #16 the server had to be stopped from outside the verifier</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>A small gap can block progress twice before I notice it's the same root cause. The quick one line workaround handled the issue at the time, but it didn't save me from going back to the Dockerfile and adding <code>lsof</code>, so that later runs wouldn't hit the same issue again.</td></tr>
+  <tr><td><b>Explained</b></td><td>I knew that if I just stopped the server by hand one more time instead of rebuilding the image, I'd probably lose more time whenever the same issue came up again. The patch was good for finishing that first run, but thinking long term, I saw how much time it took to repeat that process. It was clear <code>lsof</code> was needed, so it was better to build it into the Docker image so I wouldn't run into that issue again.</td></tr>
 </table>
 
 ### Entry 17 call graph
@@ -1209,8 +1267,14 @@ flowchart TD
       <li>What differed: the builder never connects to Neon; Joseph runs this step himself</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>I learned there can be different paths to confidence. One is automated, systemic processes, where I trust the application to give me the best validated, accurate results.</p>
+    <p>Just as important, I can get much of that same security and confidence by being proactive: stepping in to do some of the process myself, then finding which tools can still help and support me in that step and which ones just aren't meant for it at that time. Learning how to make adjustments and still reach the intended result gives me learning opportunities on both ends.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>
+    <p>At this point the builder had no way to reach Neon, so I had to do this step myself. That wasn't a bad thing. It helped me understand the order of operations: when OpenShell was needed and when I had to step in, which is a good human in the loop approach and a valid gate. I was pretty excited that I got OpenShell implemented at all and understood how it worked.</p>
+    <p>I was already familiar with Neon and Prisma, so this was a good chance to revisit those skills and ways of thinking, and having that hands on, empirical validation was great too. In terms of time and security, OpenShell served its purpose wherever it was used, and when I stepped in for Neon, I could still verify and confirm the result. It was really about understanding, appreciating, and knowing the limits and proper gates of my tools, and when to apply that knowledge to get the job done, even if I had to do it manually myself.</p>
+  </td></tr>
 </table>
 
 ### Entry 18 call graph
@@ -1275,8 +1339,12 @@ flowchart TD
       <li>What differed: the Next.js plugin isn't listed in <code>netlify.toml</code>, because Netlify detects it</li>
     </ul>
   </td></tr>
-  <tr><td><b>Reflection</b></td><td>See EVIDENCE.md</td></tr>
-  <tr><td><b>Explained</b></td><td>TBD (Joseph writes)</td></tr>
+  <tr><td><b>Reflection</b></td><td>
+    <p>I learned two things again.</p>
+    <p>First, it was really fun to see whether it would actually work, and to take a live testing approach and see the result.</p>
+    <p>Second, I learned there's an effective way to pass in the necessary secrets, as key value pairs, without exposing them, and still get the guards and functionality Netlify provides without breaching or exposing any information that didn't need to be exposed.</p>
+  </td></tr>
+  <tr><td><b>Explained</b></td><td>This showed me that the guards and features I had put in place actually worked, even after I added the extra architecture that let my application go public. On the live site, requests with forged IP headers still got a 429, and the hidden "label it low" text was ignored.</td></tr>
 </table>
 
 ### Entry 19 call graph
