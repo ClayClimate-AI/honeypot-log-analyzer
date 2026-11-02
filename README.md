@@ -2,7 +2,6 @@ Defensive learning project: a local SSH honeypot plus an AI that summarizes atta
 
 <h1 align="center">Cowrie Log Summarizer</h1>
 <p align="center"><b>Live site:</b> <a href="https://honeypot-log-analyzer.netlify.app">honeypot-log-analyzer.netlify.app</a> · sample logs only</p>
-<p align="center"><b>Companion pages:</b> <a href="https://honeypot-log-analyzer-data-flow.netlify.app/">data flow</a> · <a href="https://honeypot-log-analyzer-openshell-demo.netlify.app/">OpenShell demo</a></p>
 <p align="center">
   <a href="https://github.com/ClayClimate-AI/honeypot-log-analyzer/actions/workflows/ci.yml"><img src="https://github.com/ClayClimate-AI/honeypot-log-analyzer/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://honeypot-log-analyzer.netlify.app"><img src="https://img.shields.io/badge/live-Netlify-00C7B7?logo=netlify&amp;logoColor=white" alt="Live on Netlify"></a>
@@ -12,6 +11,17 @@ Defensive learning project: a local SSH honeypot plus an AI that summarizes atta
 </p>
 
 ---
+
+## Project links
+
+### Planned (before the build)
+- [3D trace of the original plan](https://jc-week6-ai-api-3d-330.netlify.app). This was the plan before building. See Built below for what actually shipped and what changed.
+
+### Built (what shipped)
+- [Live app](https://honeypot-log-analyzer.netlify.app). Cowrie AI Summarizer, sample logs only.
+- [Data flow of the real build](https://honeypot-log-analyzer-data-flow.netlify.app). How a request moves through the guards, the AI call, and the save.
+- [E4 and E5: catch an attack, keep none of it](https://e4-e5-honeypot.netlify.app). Honeypot capture and the sanitizing step.
+- [OpenShell build safety demo](https://honeypot-log-analyzer-openshell-demo.netlify.app). How the builder agent was sandboxed with a placeholder key.
 
 ## 1. What it is and why
 
